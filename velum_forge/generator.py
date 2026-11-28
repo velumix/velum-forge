@@ -63,7 +63,12 @@ def detect_ai_clis() -> list[dict[str, Any]]:
     return found
 
 
-def build_agent_handoff_prompt(asset_dir: Path) -> str:
+def build_agent_handoff_prompt(
+    asset_dir: Path,
+    *,
+    rate_to_ten: bool | None = None,
+    high_poly: bool | None = None,
+) -> str:
     """Build a crystal-clear, copy-paste-ready prompt for Antigravity, Cursor, Claude Code, or Codex."""
     spec_file = asset_dir / "asset_spec.json"
     spec = json.loads(spec_file.read_text(encoding="utf-8-sig")) if spec_file.is_file() else {}
@@ -72,10 +77,22 @@ def build_agent_handoff_prompt(asset_dir: Path) -> str:
     kind = spec.get("kind", "prop")
     prompt = spec.get("prompt", title)
     length_m = spec.get("target_length_m", 1.2)
+    is_arch = kind in ("building", "arch")
+    hp_on = bool(spec.get("high_poly_uncapped", False)) if high_poly is None else bool(high_poly)
+    qa_profile = "game" if hp_on else spec.get("qa_profile", "game" if is_arch else "roblox")
+    bake_res = int(spec.get("bake_res", 2048))
     refs = spec.get("references", [])
     pal = spec.get("extracted_palette", [])
     ortho_grid = bool(spec.get("ortho_blueprint_grid", False))
     review_cfg = normalize_review_config(spec.get("review_loop"))
+    if rate_to_ten is True:
+        review_cfg["enabled"] = True
+    elif rate_to_ten is False:
+        review_cfg["enabled"] = False
+    elif spec.get("rate_to_ten") and not review_cfg["enabled"]:
+        review_cfg["enabled"] = True
+    review_cfg["target_score"] = 10.0
+    review_cfg["strict_ten"] = True
 
     persp_refs = [r for r in refs if r.get("projection", "perspective") != "ortho_blueprint"]
     ortho_refs = [r for r in refs if r.get("projection") == "ortho_blueprint"]
@@ -112,7 +129,39 @@ def build_agent_handoff_prompt(asset_dir: Path) -> str:
     else:
         ref_strategy = "   - Call `refs.load_references(THIS_DIR)` if references are added later."
 
-    qa_flags = f'--profile {spec.get("qa_profile", "roblox")} --forward-axis +Y'
+    extra_skill = (
+        "`velum-architecture-environments`, "
+        if is_arch
+        else ("`velum-organic-species`, " if kind == "fish" else "")
+    )
+    if hp_on:
+        budget_rule = (
+            "**[HIGH-POLY UNCAPPED MODE: ON — NO 300k / 20k TRI CAP]**\n"
+            "   - Use `--profile game --high-poly --max-tris 0` (unlimited BVH & geometry budget — ignore any 300k scene limit or 20k per-part limit). Keep repeating props as linked `Mesh` instances (`vf_asset_set`, `vf_instanced = True`) and split any merged multi-prop object strictly for clean 2K PBR UV texel density — NEVER decimate or slash radial segments/foliage to chase a tri limit.\n"
+            "   - **Photorealistic ArchViz Geometry Floors (News Cafe Standard):**\n"
+            "     - Hero furniture, tabletops, cushions, barstools, rings & globes: `24–36` radial segments; curved bentwood tubes & splayed legs: `12–16` segs + Catmull-Rom smoothing (`vflib.quadflow.add_spline_tube(..., substeps=3)`).\n"
+            "     - Tableware, wine glasses, cups, bottles & brass sconces: `16–24` radial segments (`>= 80%` `Alt+J` quad recovery).\n"
+            "     - Architectural trim, window frames/sills, columns & curbs: micro-beveled edges (`vflib.quadflow.add_box(..., bevel=0.004..0.020)`) and smooth `20–24`-seg curved arches, curbs & Art Deco quatrefoil breeze blocks (`add_breeze_block(..., style=\"quatrefoil\")`).\n"
+            "     - 3D Botanicals: `20–24`-seg curved ringed palm trunks with `14–18` arching fronds × `16–22` pairs of `3`-seg curved V-folded leaflets; dense multi-branch shade trees & lush 3D hedges/bougainvillea (`40k–250k+` botanical tris expected).\n"
+            "     - Critic Rule: faceted low-segment cylinders (`<= 10` segs on hero props), sparse stick-like palms, or un-beveled boxy trim are `[MAJOR]` defects that block `10.0 / 10`."
+        )
+    else:
+        base_rule = (
+            "Real-world meter scale (`+Y` forward, `+Z` up, `ground_objects_safe`), multi-datum grounding (`Z_ROAD`, `Z_SW`, `Z_FLOOR_INT`), `2D` obstacle clearances, structured `FIXED` quad-flow furniture (`>= 80%` `Alt+J` quads), 3D curved botanicals (`deconflict_botanical_islands`), modular Outliner instancing + `vf_asset_set` (if any object exceeds `20k` tris because repeated/separable items like 2+ stools or chairs are joined together, split them into separate linked instances or sub-parts before reducing detail), and `--profile game --max-tris 300000`."
+            if is_arch
+            else "Real-world meter scale (`+Y` forward, `+Z` up, `ground_objects_safe`), `< 20,000` tris per `MeshPart` (`--profile roblox` — if any object exceeds `20k` tris because repeated/separable items like 2+ stools or props are joined together, split them into separate linked instances or sub-parts first instead of lowering detail), `>= 1.6 mm` wall thickness, positive signed volume normals, and `0` BVH shell breaches."
+        )
+        budget_rule = (
+            f"{base_rule}\n"
+            "   - *(High-Poly Uncapped Mode is OFF by default. Pass `--high-poly`, toggle `High-Poly Photorealistic Mode` in Studio UI, or explicitly request High-Poly Uncapped Mode in your prompt to remove the 300k/20k tri caps and enforce News Cafe ArchViz high-poly segment floors.)*"
+        )
+
+    qa_flags = f"--profile {qa_profile}"
+    if hp_on:
+        qa_flags += " --high-poly --max-tris 0"
+    elif qa_profile == "game":
+        qa_flags += " --max-tris 300000"
+    qa_flags += " --forward-axis +Y"
     if ortho_grid and ortho_refs:
         qa_flags += " --ortho-grid"
     if review_cfg["enabled"]:
@@ -122,25 +171,26 @@ def build_agent_handoff_prompt(asset_dir: Path) -> str:
         focus_line = f"\n   - Critic Focus Notes: {review_cfg['focus_notes']}" if review_cfg.get("focus_notes") else ""
         qa_warn_req = " and `0` Warnings" if review_cfg["require_zero_qa_warnings"] else ""
         review_section = (
-            f"5. **Optional Iterative Critic & Honest Rating Loop (`ENABLED` — Target `{review_cfg['target_score']:.1f} / 10`, Max `{review_cfg['max_iterations']}` Iterations):**\n"
+            f"5. **Optional Iterative Critic & Honest Rating Loop (`ENABLED` — Strict Target `10.0 / 10`, Never Proceed Below `10/10`):**\n"
             f"   - After inspecting ALL rendered views (`renders/ref_comparison.png`, `renders/qa_contact_material.png`, `renders/qa_contact_diagnostic.png`, and individual `renders/refcam_*.png`) against every reference photo + `qa_report.json`:\n"
-            f"   - Write a brutally honest **Iteration N Review — Honest Rating: X.X / 10** (NO grade inflation — explicitly list strengths AND categorized defects such as primitive foliage blobs, buried windows, clipping umbrellas/props, blurry signage, floating parts, or UV overlaps).{focus_line}\n"
+            f"   - Write a brutally honest **Iteration N Review — Honest Rating: X.X / 10** (NO grade inflation — explicitly list strengths AND categorized defects such as primitive foliage blobs, faceted low-segment props, buried windows, clipping umbrellas/props, blurry signage, floating parts, or UV overlaps).{focus_line}\n"
+            f"   - **Strict Always-10/10 Rule:** Rate yourself honestly from `0` to `10` until the outcome genuinely becomes a `10 out of 10`. It should look brilliant. Do not rush, do not fake or inflate the rating, and **NEVER stop, approve, or proceed to Stage 5 baking below `10.0 / 10`** (even `9.0`, `9.5`, or `9.6` must keep iterating!).\n"
             f"   - Persist every iteration review so Velum Forge tracks progression & builds `reviews/iteration_progression.png`:\n"
             f"     `vforge review log \"{asset_dir}\" --score <X.X> --summary \"...\" --strength \"...\" --defect \"Category|major|Defect|Exact fix\"`\n"
-            f"   - Iterate (fixing all critical/major visual defects AND geometric QA issues) until **Honest Rating >= {review_cfg['target_score']:.1f} / 10** with **QA PASS (`0` Errors{qa_warn_req})**, or until `{review_cfg['max_iterations']}` iterations are completed.\n\n"
-            f"6. **Bake `2048x2048` Cycles GPU PBR Maps, Variants & `LOD0`–`LOD3`:**\n"
-            f"   - Run: `vforge bake \"{asset_dir / 'bake_lod_variants.py'}\"` and inspect `renders/variants_lineup.png`, `renders/lod_comparison_sheet.png`, and `reviews/iteration_progression.png`."
+            f"   - Keep iterating (fixing all defects and geometric QA issues) until **Honest Rating == 10.0 / 10**, `0` unresolved defects, and **QA PASS (`0` Errors{qa_warn_req})**.\n\n"
+            f"6. **Bake Dedicated `{bake_res}x{bake_res}` Per-Set Cycles GPU PBR Maps, Variants & Instance-Aware `LOD0`–`LOD3`:**\n"
+            f"   - Run: `vforge bake \"{asset_dir / 'bake_lod_variants.py'}\"` (`isolate_for_ao=True`, Dual-UV `GraphicUV`, clean Outliner with `0` `_src` suffixes) and inspect `renders/variants_lineup.png`, `renders/lod_comparison_sheet.png`, and `reviews/iteration_progression.png`."
         )
     else:
         review_section = (
-            f"5. **Bake `2048x2048` Cycles GPU PBR Maps, Variants & `LOD0`–`LOD3`:**\n"
-            f"   - *(Iterative Rating Review Loop is `OFF` for this asset — single-pass QA mode. Toggle it ON anytime with `vforge review config \"{asset_dir}\" --enable`.)*\n"
-            f"   - Run: `vforge bake \"{asset_dir / 'bake_lod_variants.py'}\"` and inspect `renders/variants_lineup.png` and `renders/lod_comparison_sheet.png`."
+            f"5. **Bake Dedicated `{bake_res}x{bake_res}` Per-Set Cycles GPU PBR Maps, Variants & Instance-Aware `LOD0`–`LOD3`:**\n"
+            f"   - *(Iterative Rating Review Loop is `OFF` for this asset — single-pass QA mode. Toggle it ON anytime with `vforge review config \"{asset_dir}\" --enable` — when enabled, target is always `10.0 / 10`.)*\n"
+            f"   - Run: `vforge bake \"{asset_dir / 'bake_lod_variants.py'}\"` (`isolate_for_ao=True`, Dual-UV `GraphicUV`, clean Outliner with `0` `_src` suffixes) and inspect `renders/variants_lineup.png` and `renders/lod_comparison_sheet.png`."
         )
 
     return (
         f"Build and refine the Velum Forge 3D asset **{title}** (`{slug}`, archetype=`{kind}`, target_length=`{length_m} m`) "
-        f"in `{asset_dir}` following the Velum Forge Production Standard:\n\n"
+        f"in `{asset_dir}` following the Velum Forge 6-Gate Standard:\n\n"
         f"1. **Read Spec & Inspect Every Reference Image First:**\n"
         f"   - Spec JSON: `{spec_file}`\n"
         f"   - User Description: {prompt}\n"
@@ -148,10 +198,10 @@ def build_agent_handoff_prompt(asset_dir: Path) -> str:
         f"   - Reference Images (visually inspect EVERY image before modeling!):\n{ref_lines}\n"
         f"{ref_strategy}\n\n"
         f"2. **Read Velum Forge Skills & Guardrails (`{REPO_ROOT}`):**\n"
-        f"   - Activate `velum-3d-workflow` (and `velum-cad-brep` / `velum-organic-species` / `velum-pbr-bake-lods`).\n"
-        f"   - Engine imports: `sys.path.insert(0, r\"{BLENDER_ENGINE_DIR}\")` -> `from vflib import core, mats, gameready, integrity, bake, lod, export, refs`.\n\n"
+        f"   - Activate `velum-3d-workflow`, {extra_skill}`velum-cad-brep`, `velum-organic-species`, and `velum-pbr-bake-lods`.\n"
+        f"   - Engine imports: `sys.path.insert(0, r\"{BLENDER_ENGINE_DIR}\")` -> `from vflib import core, mats, gameready, integrity, bake, lod, export, quadflow, refs`.\n\n"
         f"3. **Author Bespoke Geometry & Shaders (`build_{slug}.py` + `bake_lod_variants.py`):**\n"
-        f"   - Real-world meter scale (`+Y` forward, `+Z` up, `ground_z = 0.0000 m`), `< 20,000` tris per `MeshPart`, `>= 1.6 mm` wall thickness, positive signed volume normals, and `0` BVH shell breaches.\n\n"
+        f"   - {budget_rule}\n\n"
         f"4. **Verify 10-View QA + Multi-Angle Side-by-Side Reference Comparison (`PASS` 0 Errors, 0 Warnings):**\n"
         f"   - Run: `vforge qa \"{asset_dir / f'build_{slug}.py'}\" {qa_flags}`\n"
         f"   - Visually inspect `renders/qa_contact_material.png`, `renders/qa_contact_diagnostic.png`, and `renders/ref_comparison.png`!\n\n"
@@ -168,12 +218,20 @@ def generate_parametric_scripts(
     prompt: str,
     length_m: float,
     references: list[dict[str, Any]],
-    profile: str = "roblox",
+    profile: str = "auto",
+    bake_res: int = 2048,
     ortho_blueprint_grid: bool = False,
     review_loop: dict[str, Any] | None = None,
+    rate_to_ten: bool | None = None,
+    high_poly_uncapped: bool = False,
 ) -> dict[str, str]:
     """Write reference-calibrated multi-part `build_<slug>.py` + `bake_lod_variants.py` + `asset_spec.json`."""
     asset_dir.mkdir(parents=True, exist_ok=True)
+    hp_on = bool(high_poly_uncapped)
+    if profile == "auto":
+        resolved_profile = "game" if (hp_on or kind in ("building", "arch")) else "roblox"
+    else:
+        resolved_profile = profile
     spec_path = write_asset_spec(
         asset_dir,
         slug=slug,
@@ -181,7 +239,10 @@ def generate_parametric_scripts(
         kind=kind,
         prompt=prompt,
         length_m=length_m,
-        profile=profile,
+        profile=resolved_profile,
+        bake_res=bake_res,
+        rate_to_ten=rate_to_ten,
+        high_poly_uncapped=hp_on,
         references=references,
         ortho_blueprint_grid=ortho_blueprint_grid,
         review_loop=review_loop,
@@ -450,10 +511,12 @@ if __name__ == "__main__":
             encoding="utf-8",
         )
         return {"slug": slug, "dir": str(asset_dir), "spec": str(spec_path), "build_script": str(build_py)}
-    elif kind == "arch":
-        # Architecture / Building / Street Scene baseline (real metric scale, recessed glazing, awning, sidewalk)
+    elif kind in ("building", "arch"):
+        width_m = max(6.0, float(length_m))
+        depth_m = round(width_m * 0.72, 3)
+        height_m = round(max(4.4, width_m * 0.52), 3)
         build_py.write_text(
-            f'''"""Velum Forge Reference-Calibrated Architecture / Street Scene — {title} (`{length_m} m` frontage).
+            f'''"""Velum Forge Architectural / Landmark Builder — {title} (`kind={kind}`, `{width_m} m` frontage).
 
 Prompt: {prompt}
 Reference Palette: {pal}
@@ -466,17 +529,21 @@ import sys
 
 import bmesh
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Vector
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 if "{bl_engine}" not in sys.path:
     sys.path.insert(0, "{bl_engine}")
 
-from vflib import core, gameready, integrity, mats, refs  # noqa: E402
+from vflib import core, gameready, integrity, mats, quadflow, refs  # noqa: E402
 
-FRONTAGE = max(4.0, {float(length_m):.4f})
-DEPTH = FRONTAGE * 0.68
-HEIGHT = min(max(FRONTAGE * 0.62, 6.5), 14.0)
+# Multi-datum elevation constants (meters, +Y forward, +Z up)
+Z_ROAD = 0.000
+Z_SW = 0.152
+Z_FLOOR_INT = Z_SW + 0.025
+W_EXT = {width_m:.4f}
+D_EXT = {depth_m:.4f}
+H_EXT = {height_m:.4f}
 
 
 def clear_scene_and_setup_units() -> None:
@@ -489,103 +556,117 @@ def clear_scene_and_setup_units() -> None:
     bpy.context.scene.unit_settings.scale_length = 1.0
 
 
-def _unwrap_clean(ob: bpy.types.Object) -> None:
-    core.ensure_object_mode()
-    for o in bpy.context.view_layer.objects:
-        o.select_set(False)
-    ob.select_set(True)
-    bpy.context.view_layer.objects.active = ob
-    bpy.ops.object.mode_set(mode="EDIT")
-    bpy.ops.mesh.select_all(action="SELECT")
-    bpy.ops.uv.smart_project(angle_limit=math.radians(60.0), island_margin=0.012, scale_to_bounds=False)
-    bpy.ops.uv.pack_islands(rotate=True, margin=0.010)
-    bpy.ops.object.mode_set(mode="OBJECT")
-    ob.select_set(False)
-
-
-def _box_part(name: str, size: tuple[float, float, float], center: tuple[float, float, float], col, mat, bevel: float = 0.015):
-    bm = bmesh.new()
-    bmesh.ops.create_cube(bm, size=1.0)
-    bmesh.ops.scale(bm, vec=Vector(size), verts=bm.verts[:])
-    if bevel > 0.0:
-        bmesh.ops.bevel(bm, geom=bm.edges[:], offset=min(bevel, min(size) * 0.18), segments=2, affect="EDGES")
-    bmesh.ops.translate(bm, vec=Vector(center), verts=bm.verts[:])
-    bmesh.ops.triangulate(bm, faces=bm.faces[:])
-    integrity.ensure_positive_signed_volume(bm)
-    me = bpy.data.meshes.new(name)
-    bm.to_mesh(me)
-    bm.free()
-    for p in me.polygons:
-        p.use_smooth = False
-    me.materials.append(mat)
-    ob = bpy.data.objects.new(name, me)
-    col.objects.link(ob)
-    ob["sc_part"] = name
-    ob["sc_role"] = "solid"
-    _unwrap_clean(ob)
-    return ob
+def _clear_obstacles(xy: tuple[float, float], r_item: float, obstacles: list[tuple[float, float, float]], margin: float = 0.12) -> bool:
+    return all(((xy[0] - ox) ** 2 + (xy[1] - oy) ** 2) ** 0.5 >= (r_item + orad + margin) for ox, oy, orad in obstacles)
 
 
 def build_all(collection_name: str = "{pascal}", clear_scene: bool = True, mat_override: dict | None = None):
     if clear_scene:
         clear_scene_and_setup_units()
-    col = core.fresh_collection(collection_name)
+    root_col = core.fresh_collection(collection_name)
+    col_arch = quadflow.sub_collection("Architecture_Shell", root_col)
+    col_int = quadflow.sub_collection("Interior_Bar_And_Decor", root_col)
+    col_patio = quadflow.sub_collection("Patio_Furniture", root_col)
+    col_bot = quadflow.sub_collection("Botanicals", root_col)
 
-    m_stucco = (mat_override or {{}}).get("Hull") or mats.pbr("{pascal}_Stucco", color="{c_belly}", roughness=0.72, metallic=0.0)
-    m_trim = (mat_override or {{}}).get("Deck") or mats.pbr("{pascal}_Trim", color="{c_primary}", roughness=0.45, metallic=0.08)
-    m_awning = (mat_override or {{}}).get("Accent") or mats.pbr("{pascal}_Awning", color="{c_secondary}", roughness=0.65, metallic=0.0)
-    m_glass = mats.pbr("{pascal}_Glass", color="#101A26", roughness=0.06, metallic=0.25)
-    m_sidewalk = mats.pbr("{pascal}_Sidewalk", color="#B8B6AE", roughness=0.82, metallic=0.0)
+    ov = mat_override or {{}}
+    m_stucco = ov.get("Facade") or mats.pbr("{pascal}_Facade", color="{c_belly}", roughness=0.72, metallic=0.0)
+    m_sw = ov.get("Sidewalk") or mats.pbr("{pascal}_Sidewalk", color="#C4B6AA", roughness=0.84, metallic=0.0)
+    m_awn = ov.get("Awning") or mats.pbr("{pascal}_Awning", color="{c_primary}", roughness=0.86, metallic=0.0)
+    if m_awn.node_tree is not None:
+        bsdf = m_awn.node_tree.nodes.get("Principled BSDF")
+        if bsdf and "Specular IOR Level" in bsdf.inputs:
+            bsdf.inputs["Specular IOR Level"].default_value = 0.07
+    m_wood = ov.get("Furniture") or mats.pbr("{pascal}_Wood", color="#5B3922", roughness=0.42, metallic=0.0)
+    m_brass = ov.get("Brass") or mats.pbr("{pascal}_Brass", color="{c_secondary}", roughness=0.22, metallic=0.92)
+    m_art = ov.get("Art") or mats.pbr("{pascal}_Art", color="#1E293B", roughness=0.38, metallic=0.05)
+    m_leaf = ov.get("Botanical") or mats.pbr("{pascal}_Botanical", color="#2B6130", roughness=0.52, metallic=0.0)
+    m_bloom = mats.pbr("{pascal}_Bloom", color="#C22564", roughness=0.55, metallic=0.0)
 
-    # 1. Grounded Sidewalk & Curb Apron (Z=0..0.16m)
-    sidewalk = _box_part("Sidewalk", (FRONTAGE + 3.2, DEPTH + 4.4, 0.16), (0.0, 0.8, 0.08), col, m_sidewalk, bevel=0.012)
+    # 1. Sidewalk & Curb Base + Facade Shell (+Y forward!) + Interior Floor Slab + Upper Story
+    bm_sw = bmesh.new()
+    quadflow.add_box_bounds(bm_sw, -0.58 * W_EXT, 0.58 * W_EXT, -0.55 * D_EXT, 0.65 * D_EXT, Z_ROAD, Z_SW, mat_idx=0)
+    sw_ob = quadflow.finalize_part(bm_sw, "Sidewalk_Terrace", col_arch, mats=[m_sw], smooth=False, asset_set="street_curbs")
 
-    # 2. Main Architectural Massing Shell (seated firmly into sidewalk)
-    body = _box_part("FacadeMass", (FRONTAGE, DEPTH, HEIGHT), (0.0, -0.4, 0.14 + HEIGHT * 0.5), col, m_stucco, bevel=0.025)
+    bm_sh = bmesh.new()
+    quadflow.add_box_bounds(bm_sh, -0.45 * W_EXT, 0.45 * W_EXT, -0.48 * D_EXT, 0.0, Z_SW - 0.002, Z_FLOOR_INT, mat_idx=0)
+    quadflow.add_box_bounds(bm_sh, -0.45 * W_EXT, 0.45 * W_EXT, -0.48 * D_EXT, -0.42 * D_EXT, Z_FLOOR_INT - 0.003, Z_SW + H_EXT * 0.62 + 0.003, mat_idx=0)
+    quadflow.add_box_bounds(bm_sh, -0.45 * W_EXT, -0.41 * W_EXT, -0.417 * D_EXT, 0.0, Z_FLOOR_INT - 0.003, Z_SW + H_EXT * 0.62 + 0.003, mat_idx=0)
+    quadflow.add_box_bounds(bm_sh, 0.41 * W_EXT, 0.45 * W_EXT, -0.417 * D_EXT, 0.0, Z_FLOOR_INT - 0.003, Z_SW + H_EXT * 0.62 + 0.003, mat_idx=0)
+    quadflow.add_box_bounds(bm_sh, -0.452 * W_EXT, 0.452 * W_EXT, -0.482 * D_EXT, 0.002, Z_SW + H_EXT * 0.62, Z_SW + H_EXT, mat_idx=0)
+    sh_ob = quadflow.finalize_part(bm_sh, "Building_Facade_Shell", col_arch, mats=[m_stucco], smooth=False, asset_set="facade")
 
-    # 3. Art-Deco Parapet Cornice & Horizontal Eyebrows
-    cornice = _box_part("Cornice", (FRONTAGE + 0.42, DEPTH + 0.42, 0.36), (0.0, -0.4, 0.14 + HEIGHT + 0.14), col, m_trim, bevel=0.02)
+    bm_awn = bmesh.new()
+    quadflow.add_box(bm_awn, (0.0, 0.78, Z_SW + H_EXT * 0.54), (0.86 * W_EXT, 1.65, 0.08), mat_idx=0, rot_euler=(math.radians(-14.0), 0.0, 0.0))
+    awn_ob = quadflow.finalize_part(bm_awn, "Storefront_Awning", col_arch, mats=[m_awn], smooth=False, asset_set="awnings")
 
-    # 4. Storefront Canopy / Awning above Ground-Level Entry
-    awning = _box_part("Awning", (FRONTAGE * 0.72, 2.1, 0.24), (0.0, DEPTH * 0.5 + 0.55, 3.25), col, m_awning, bevel=0.02)
+    # 2. 3D Interior Bar Counter, Speed Footrail & 45-deg Mitered Art Frame facing +Y
+    bm_bar = bmesh.new()
+    quadflow.add_quad_grid_box(bm_bar, (0.0, -0.24 * D_EXT, Z_FLOOR_INT + 0.52 + 0.0016), (0.48 * W_EXT, 0.68, 1.04), segs=(4, 2, 2), radius=0.015, mat_idx=0)
+    quadflow.add_torus_ring(bm_bar, (0.0, -0.24 * D_EXT + 0.46, Z_FLOOR_INT + 0.18), 0.18, 0.016, major_segs=24, minor_segs=10, axis=(0, 1, 0), mat_idx=1)
+    quadflow.add_spline_tube(bm_bar, [(-0.22 * W_EXT, -0.24 * D_EXT + 0.46, Z_FLOOR_INT + 0.18), (0.22 * W_EXT, -0.24 * D_EXT + 0.46, Z_FLOOR_INT + 0.18)], 0.018, segs=16, mat_idx=1)
+    bar_ob = quadflow.finalize_part(bm_bar, "Interior_Bar_Counter", col_int, mats=[m_wood, m_brass], asset_set="interior_bar")
 
-    # 5. Upper-Story Window Bays (proud dark reflective glazing + trim sills seated cleanly into facade)
-    bm_g = bmesh.new()
-    n_bays = max(3, min(6, int(round(FRONTAGE / 3.2))))
-    span_x = FRONTAGE * 0.76
-    front_y = -0.4 + DEPTH * 0.5
-    for floor_idx in range(2):
-        fz = 4.9 + floor_idx * 3.1
-        if fz + 1.1 > HEIGHT:
-            break
-        for bi in range(n_bays):
-            bx = -span_x * 0.5 + (bi / max(n_bays - 1, 1)) * span_x
-            ret = bmesh.ops.create_cube(bm_g, size=1.0)
-            bmesh.ops.scale(bm_g, vec=Vector((1.45, 0.14, 1.75)), verts=ret["verts"])
-            bmesh.ops.translate(bm_g, vec=Vector((bx, front_y + 0.03, fz)), verts=ret["verts"])
-    bmesh.ops.triangulate(bm_g, faces=bm_g.faces[:])
-    integrity.ensure_positive_signed_volume(bm_g)
-    me_g = bpy.data.meshes.new("Glazing")
-    bm_g.to_mesh(me_g)
-    bm_g.free()
-    me_g.materials.append(m_glass)
-    glazing = bpy.data.objects.new("Glazing", me_g)
-    col.objects.link(glazing)
-    glazing["sc_part"] = "Glazing"
-    glazing["sc_role"] = "glass"
-    _unwrap_clean(glazing)
+    bm_art = bmesh.new()
+    quadflow.add_mitered_frame(bm_art, (0.0, -0.42 * D_EXT + 0.014, Z_FLOOR_INT + 1.85), 1.35, 0.92, facing_axis="+Y", mat_idx=0)
+    quadflow.add_uv_mapped_sign_plate(bm_art, (0.0, -0.42 * D_EXT + 0.014, Z_FLOOR_INT + 1.85), 1.26, 0.83, thickness=0.018, facing_axis="+Y", mat_front=1, mat_back=0)
+    art_ob = quadflow.finalize_part(bm_art, "Interior_Mitered_Artwork", col_int, mats=[m_brass, m_art], asset_set="interior_art")
 
-    meshes = [sidewalk, body, cornice, awning, glazing]
-    lo, _ = core.world_bbox(meshes)
-    if abs(lo.z) > 1e-7:
-        for o in meshes:
-            o.data.transform(Matrix.Translation((0, 0, -lo.z)))
-            o.data.update()
+    # 3. Structured Quad-Flow Bistro Table & Chair Prototype Meshes (linked instances!)
+    bm_tbl = bmesh.new()
+    quadflow.add_revolved_profile(
+        bm_tbl,
+        [
+            (0.0, 0.004), (0.14, 0.004), (0.21, 0.002), (0.235, 0.0), (0.24, 0.004),
+            (0.23, 0.03), (0.12, 0.05), (0.04, 0.07),
+            (0.036, 0.28), (0.034, 0.50), (0.032, 0.72),
+            (0.14, 0.73), (0.06, 0.73), (0.0, 0.73),
+        ],
+        segs=28, mat_idx=1,
+    )
+    quadflow.add_revolved_ring(bm_tbl, (0.0, 0.0, 0.732), 0.0, 0.36, 0.032, segs=32, bevel=0.008, mat_idx=0)
+    tbl_mesh = quadflow.finalize_mesh_data(bm_tbl, "BistroTable_QuadFlow", mats=[m_wood, m_brass])
 
-    # Load matched perspective Street View / photo cameras (or ortho blueprints if supplied)
+    bm_chr = bmesh.new()
+    quadflow.add_revolved_ring(bm_chr, (0.0, 0.0, 0.45), 0.0, 0.205, 0.032, segs=24, bevel=0.006, mat_idx=0)
+    quadflow.add_torus_ring(bm_chr, (0.0, 0.0, 0.20), 0.174, 0.011, major_segs=24, minor_segs=10, mat_idx=0)
+    for ang_deg in (42, 138, 222, 318):
+        a = math.radians(ang_deg)
+        quadflow.add_cylinder(bm_chr, (0.18 * math.cos(a), 0.18 * math.sin(a), 0.0015), (0.17 * math.cos(a), 0.17 * math.sin(a), 0.45), 0.013, 0.012, segs=12, mat_idx=0)
+    quadflow.add_spline_tube(bm_chr, [(-0.135, -0.135, 0.44), (-0.135, -0.175, 0.76), (0.0, -0.185, 0.87), (0.135, -0.175, 0.76), (0.135, -0.135, 0.44)], 0.013, segs=12, mat_idx=0)
+    chr_mesh = quadflow.finalize_mesh_data(bm_chr, "BistroChair_QuadFlow", mats=[m_wood])
+
+    # 4. Deterministic Obstacle Clearances & Front (+Y) Patio Placement
+    obstacles = [(-0.42 * W_EXT, 0.05, 0.35), (0.42 * W_EXT, 0.05, 0.35)]
+    meshes = [sw_ob, sh_ob, awn_ob, bar_ob, art_ob]
+    n_sets = max(2, min(5, int(W_EXT // 2.8)))
+    for i in range(n_sets):
+        tx = -0.32 * W_EXT + (i / max(1, n_sets - 1)) * (0.64 * W_EXT)
+        ty = 0.28 * D_EXT
+        if _clear_obstacles((tx, ty), 0.75, obstacles):
+            obstacles.append((tx, ty, 0.75))
+            meshes.append(quadflow.spawn_instance(f"Patio_Table_{{i+1}}", tbl_mesh, col_patio, loc=(tx, ty, Z_SW), asset_set="patio_tables"))
+            meshes.append(quadflow.spawn_instance(f"Patio_Chair_{{i+1}}L", chr_mesh, col_patio, loc=(tx - 0.56, ty, Z_SW), rot=(0, 0, -0.5 * math.pi), asset_set="patio_chairs"))
+            meshes.append(quadflow.spawn_instance(f"Patio_Chair_{{i+1}}R", chr_mesh, col_patio, loc=(tx + 0.56, ty, Z_SW), rot=(0, 0, 0.5 * math.pi), asset_set="patio_chairs"))
+
+    # 5. Realistic 3D Curved Planter Botanicals + Stem Connections
+    bm_bot = bmesh.new()
+    for px in (-0.43 * W_EXT, 0.43 * W_EXT):
+        py = 0.15 * D_EXT
+        quadflow.add_revolved_profile(bm_bot, [(0.0, Z_SW + 0.004), (0.18, Z_SW + 0.004), (0.215, Z_SW), (0.22, Z_SW + 0.004), (0.28, Z_SW + 0.48), (0.25, Z_SW + 0.48), (0.21, Z_SW + 0.42), (0.0, Z_SW + 0.42)], segs=24, center=(px, py, 0.0), mat_idx=0)
+        quadflow.add_cylinder(bm_bot, (px, py, Z_SW + 0.40), (px, py, Z_SW + 0.72), 0.025, 0.012, segs=10, mat_idx=0)
+        for k in range(7):
+            ang = (2.0 * math.pi * k) / 7.0
+            lz = Z_SW + 0.45 + 0.024 * k
+            quadflow.add_curved_leaf(bm_bot, (px + 0.008 * math.cos(ang), py + 0.008 * math.sin(ang), lz), (math.cos(ang), math.sin(ang), 0.38), length=0.40, width=0.075, mat_idx=0)
+        quadflow.add_bougainvillea_cluster(bm_bot, (px, py, Z_SW + 0.70), radius=0.05, bract_mat_idx=1, stamen_mat_idx=1)
+    bot_ob = quadflow.finalize_part(bm_bot, "Corner_Planters_3D_Botanicals", col_bot, mats=[m_leaf, m_bloom], asset_set="botanicals")
+    meshes.append(bot_ob)
+
+    quadflow.ground_objects_safe(meshes, target_z=Z_ROAD)
     refs.load_references(THIS_DIR, subject_objects=meshes)
-    gameready.validate(meshes)
-    return col, meshes
+    gameready.validate(meshes, max_tris={2_000_000 if hp_on else 300000}, deduplicate_meshes=True)
+    return root_col, meshes
 
 
 def main() -> int:
@@ -596,10 +677,149 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
 ''',
             encoding="utf-8",
         )
+        bake_py.write_text(
+            f'''"""Velum Forge Dedicated {int(bake_res)}x{int(bake_res)} Per-Set Cycles Bake, 4 Variants & Instance LOD0-LOD3 for {title}."""
+from __future__ import annotations
+
+import json
+import os
+import sys
+
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+for _p in (THIS_DIR, "{bl_engine}"):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+import bpy  # noqa: E402
+from mathutils import Vector  # noqa: E402
+from vflib import bake, core, export, lod, mats, render  # noqa: E402
+import build_{slug} as builder  # noqa: E402
+
+BAKE_RES = {int(bake_res)}
+VARIANTS = [
+    ("reference_match", "{c_primary}", "{c_secondary}"),
+    ("ocean_dr_mint", "#7BB59D", "#D4AF37"),
+    ("sunset_coral_deco", "#E07A5F", "#F2CC8F"),
+    ("midnight_bistro", "#1D3557", "#E6B86A"),
+]
+
+
+def main() -> int:
+    builder.clear_scene_and_setup_units()
+    col, meshes = builder.build_all(clear_scene=False)
+    bake.enable_cycles_gpu(bpy.context.scene)
+
+    groups = bake.group_objects_by_asset_set(meshes)
+    tex_dir = os.path.join(THIS_DIR, "textures")
+    os.makedirs(tex_dir, exist_ok=True)
+
+    # Single-pack UVs once per vf_asset_set so all variants and LODs share exact UVs
+    for _skey, g_objs in groups.items():
+        bake.prepare_dedicated_set_uvs(g_objs)
+
+    flagship_tex_sets = {{}}
+    flagship_mats_by_set = {{}}
+    variant_reports = {{}}
+    re_bake_variant_sets = {{"facade", "awnings", "interior_bar", "patio_tables"}}
+
+    for vidx, (vid, c1, c2) in enumerate(VARIANTS):
+        v_tex_sets = {{}}
+        for skey, g_objs in groups.items():
+            if vidx > 0 and skey not in re_bake_variant_sets:
+                v_tex_sets[skey] = dict(flagship_tex_sets[skey])
+                continue
+            for o in bake.unique_mesh_reps(g_objs):
+                for m in o.data.materials:
+                    if m and m.node_tree is not None:
+                        bsdf = m.node_tree.nodes.get("Principled BSDF")
+                        if bsdf and ("Awning" in m.name or "Facade" in m.name):
+                            mats.set_in(bsdf, "Base Color", mats.linear(c1 if "Awning" in m.name else "{c_belly}"))
+                        elif bsdf and "Brass" in m.name:
+                            mats.set_in(bsdf, "Base Color", mats.linear(c2))
+            shared_nc = flagship_tex_sets.get(skey) if vidx > 0 else None
+            paths = bake.bake_pbr_set(
+                g_objs, tex_dir, f"T_{pascal}_{{vid}}_{{skey}}",
+                res=BAKE_RES, samples=32, isolate_for_ao=True, cooldown_s=0.4,
+                shared_non_color=shared_nc,
+            )
+            v_tex_sets[skey] = paths
+            if vidx == 0:
+                mat = bake.make_baked_pbr_material(f"Baked_{pascal}_{{skey}}", paths)
+                flagship_tex_sets[skey] = paths
+                flagship_mats_by_set[skey] = mat
+        variant_reports[vid] = {{"color": c1, "accent": c2, "textures": v_tex_sets}}
+
+    for skey, g_objs in groups.items():
+        bake.assign_baked_and_strip_graphic_uv(g_objs, flagship_mats_by_set[skey])
+
+    lod_summary = lod.build_lod_chain(
+        meshes, os.path.join(THIS_DIR, "lods"), "{slug}",
+        collection_prefix="{pascal}", planar_sets={{"facade", "awnings", "street_curbs"}},
+    )
+    specs = [dict(name=o.name, objects=[o], role="baked_solid", texture_set=o.get("vf_asset_set")) for o in meshes]
+    export.export_roblox(
+        "{pascal}", os.path.join(THIS_DIR, "roblox"), specs,
+        source_collection=col, prebaked_texture_sets=flagship_tex_sets,
+        prebaked_materials_by_set=flagship_mats_by_set, max_tris={2_000_000 if hp_on else 300000},
+    )
+
+    for l_idx in (1, 2, 3):
+        lc = bpy.data.collections.get(f"{pascal}_LOD{{l_idx}}")
+        if lc:
+            lc.hide_render = True
+            lc.hide_viewport = True
+
+    sc = bpy.context.scene
+    sc.cycles.samples = 64
+    st = render.setup_studio(meshes, backdrop="outdoor")
+    lo, hi = core.world_bbox(meshes)
+    ctr = (lo + hi) * 0.5
+    rad = max((hi - lo).length * 0.5, 1.0)
+    cd = bpy.data.cameras.new("VF_HeroCam")
+    cm = bpy.data.objects.new("VF_HeroCam", cd)
+    st.objects.link(cm)
+    sc.camera = cm
+    sc.render.resolution_x, sc.render.resolution_y = 1600, 900
+    cm.location = ctr + Vector((rad * 1.15, rad * 1.55, rad * 0.45))
+    cm.data.lens = 35.0
+    cm.rotation_euler = (ctr - cm.location).to_track_quat("-Z", "Y").to_euler()
+    os.makedirs(os.path.join(THIS_DIR, "renders"), exist_ok=True)
+    out_hero = os.path.join(THIS_DIR, "renders", "blender-render-check.png")
+    bake.render_still_safe(sc, out_hero)
+    core.clear_collection(st)
+    bpy.data.collections.remove(st)
+
+    master_blend = os.path.join(THIS_DIR, "{slug}_variants_lods.blend")
+    bpy.ops.wm.save_as_mainfile(filepath=master_blend)
+    rep = {{
+        "ok": True,
+        "asset": "{slug}",
+        "kind": "{kind}",
+        "bake_res": BAKE_RES,
+        "lods": lod_summary,
+        "variants": variant_reports,
+    }}
+    with open(os.path.join(THIS_DIR, "variants_and_lods_report.json"), "w", encoding="utf-8") as fh:
+        json.dump(rep, fh, indent=2)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+''',
+            encoding="utf-8",
+        )
+        return {
+            "slug": slug,
+            "dir": str(asset_dir),
+            "spec": str(spec_path),
+            "build_script": str(build_py),
+            "bake_script": str(bake_py),
+        }
     else:
         beam_ratio = 0.34 if kind == "boat" else 0.58
         height_ratio = 0.28 if kind == "boat" else 0.48

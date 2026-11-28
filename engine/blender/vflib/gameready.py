@@ -1,4 +1,4 @@
-﻿"""Game-ready pipeline: bake modifiers, join, triangle budgets, validation, collision proxies."""
+"""Game-ready pipeline: bake modifiers, join, triangle budgets, validation, collision proxies."""
 
 import bmesh
 import bpy
@@ -91,13 +91,18 @@ def collapse_materials(ob):
     me.polygons.foreach_set("material_index", [remap.get(i, 0) for i in idx])
 
 
-def validate(objs, max_tris=ROBLOX_MAX_TRIS_PER_MESH, units_to_studs=1.0, verbose=True):
+def validate(objs, max_tris=ROBLOX_MAX_TRIS_PER_MESH, units_to_studs=1.0, verbose=True, deduplicate_meshes=False):
     """Check meshes for common game-engine problems. Returns a list of per-object reports."""
     reports = []
+    seen_meshes = set()
     for ob in objs:
-        if ob.type != "MESH":
+        if ob.type != "MESH" or ob.data is None:
             continue
         me = ob.data
+        ptr = me.as_pointer()
+        if deduplicate_meshes and ptr in seen_meshes:
+            continue
+        seen_meshes.add(ptr)
         bm = bmesh.new()
         bm.from_mesh(me)
         non_manifold = sum(1 for e in bm.edges if not e.is_manifold and not e.is_boundary)
@@ -119,7 +124,9 @@ def validate(objs, max_tris=ROBLOX_MAX_TRIS_PER_MESH, units_to_studs=1.0, verbos
             issues.append(f"{non_manifold} non-manifold edges")
         if not me.uv_layers:
             issues.append("no UV map")
-        if any(abs(s - 1.0) > 1e-4 for s in ob.scale) or any(abs(r) > 1e-5 for r in ob.rotation_euler):
+        if any(abs(s - 1.0) > 1e-4 for s in ob.scale):
+            issues.append("unapplied scale")
+        if any(abs(r) > 1e-5 for r in ob.rotation_euler) and not (ob.get("vf_instanced") or ob.get("vf_asset_set")):
             issues.append("unapplied transform")
         if max(dims) > ROBLOX_MAX_SIZE_STUDS:
             issues.append("larger than Roblox max part size")

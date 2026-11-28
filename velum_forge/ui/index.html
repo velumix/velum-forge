@@ -339,7 +339,7 @@
     </button>
     <button class="nav-btn" id="nav-skills" onclick="switchTab('skills', this)">
       <span>AI Skills &amp; Playbook</span>
-      <span class="pill cyan">5</span>
+      <span id="skills-count" class="pill cyan">6</span>
     </button>
 
     <div class="sidebar-footer">
@@ -380,15 +380,46 @@
               <label>3D Pipeline Archetype</label>
               <select id="gen-kind" onchange="updateDefaultLength()">
                 <option value="fish">Organic Species / Fish / Creature (Watertight S^2 + Scales + Fins + Eyes)</option>
-                <option value="arch">Architecture / Building / Street Scene (Facade + Recessed Glazing + Street Cams)</option>
+                <option value="building">Architecture / Landmark / Restaurant (Multi-Datum + Interior + Botanicals + 2K Sets)</option>
+                <option value="arch">Architecture / Street Scene (Facade + Recessed Glazing + Street Cams)</option>
                 <option value="boat">Vehicle / Boat / Hard-Surface Assembly (Hull Loft + Console + Hardware)</option>
                 <option value="cad">Precision Mechanical CAD Hardware (build123d STEP + Watertight GLB)</option>
                 <option value="prop">Game Environment Prop (Beveled Multi-Part PBR + 4-Tier LODs)</option>
               </select>
             </div>
-            <div class="field" style="margin-bottom:0;">
+            <div class="row-2">
+              <div class="field">
+                <label>QA Profile</label>
+                <select id="gen-profile">
+                  <option value="auto" selected>Auto (Game High-Poly for Architecture, Roblox &lt;20k for Props/Boats/Fish)</option>
+                  <option value="game">Game / Realism High-Poly (--profile game, 300k tri BVH)</option>
+                  <option value="roblox">Roblox Studio Strict (&lt;20k tris/part)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>PBR Bake Resolution</label>
+                <select id="gen-bake-res">
+                  <option value="2048" selected>2048&times;2048 (2K Dedicated Set Standard)</option>
+                  <option value="1024">1024&times;1024 (1K Fast Preview)</option>
+                  <option value="4096">4096&times;4096 (4K Hero Close-Up)</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
               <label>Detailed Description / AI Prompt (proportions, architecture, foliage, signage, materials)</label>
               <textarea id="gen-prompt" placeholder="e.g. Art Deco 3-story Ocean Drive corner building with News Cafe awning, recessed dark glazing, perforated 3D breeze blocks, palm fronds, and realistic tropical shade trees..."></textarea>
+            </div>
+            <div class="toggle-row" id="hp-toggle-row" style="margin-bottom:0;">
+              <div>
+                <strong style="font-size:13px;display:block;margin-bottom:2px;">High-Poly Photorealistic Mode (Optional — No 300k Tri Cap)</strong>
+                <span style="font-size:11.5px;color:var(--muted);">
+                  Toggle ON to inject High-Poly Uncapped instructions (<code>--high-poly --max-tris 0</code>, News Cafe ArchViz radial segment &amp; 3D botanical density floors). Off by default.
+                </span>
+              </div>
+              <label class="switch cyan">
+                <input type="checkbox" id="gen-high-poly" onchange="toggleHighPolyOption()" />
+                <span class="slider"></span>
+              </label>
             </div>
           </div>
 
@@ -399,7 +430,7 @@
               <div>
                 <strong style="font-size:13.5px;display:block;margin-bottom:2px;">Enable Iterative Visual Critic &amp; Honest Rating Loop</strong>
                 <span style="font-size:11.5px;color:var(--muted);">
-                  Optional: Archive each iteration, rate honestly (0–10) against every reference photo &amp; <code>qa_report.json</code>, list categorized defects, and iterate until target score is reached.
+                  Optional: Archive each iteration, rate honestly (0–10) against every reference photo &amp; <code>qa_report.json</code>, list categorized defects, and iterate until genuinely <strong>10.0 / 10</strong> (never stop or proceed on a lower score).
                 </span>
               </div>
               <label class="switch">
@@ -411,12 +442,12 @@
             <div id="iter-options-panel" style="display:none;margin-top:14px;">
               <div class="row-3">
                 <div class="field">
-                  <label>Target Honest Rating</label>
-                  <input id="gen-target-score" type="number" step="0.5" min="6.0" max="10.0" value="9.0" />
+                  <label>Target Rating (Always Strict 10/10)</label>
+                  <input id="gen-target-score" type="text" value="10.0" readonly style="opacity:0.85;color:var(--gold);font-weight:700;" />
                 </div>
                 <div class="field">
-                  <label>Max Iterations</label>
-                  <input id="gen-max-iters" type="number" min="1" max="8" value="3" />
+                  <label>Max Iterations (0 = Unlimited until 10/10)</label>
+                  <input id="gen-max-iters" type="number" min="0" max="20" value="0" />
                 </div>
                 <div class="field">
                   <label>QA Gate Enforcement</label>
@@ -425,6 +456,12 @@
                     <option value="errors_only">0 Errors Only</option>
                   </select>
                 </div>
+              </div>
+              <div class="field" style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <input type="checkbox" id="gen-rate-to-10" checked disabled style="width:auto;accent-color:var(--gold);" />
+                <label for="gen-rate-to-10" style="margin:0;font-size:12px;color:var(--gold);">
+                  Strict 10 / 10 Rule (Always active — do not rush, fake score, or proceed below 10.0 / 10)
+                </label>
               </div>
               <div class="field" style="margin-bottom:0;">
                 <label>Optional Critic Focus Notes (what to scrutinize hardest)</label>
@@ -561,14 +598,25 @@
 
     function updateDefaultLength() {
       const k = document.getElementById('gen-kind').value;
-      const defaults = { fish: 1.10, arch: 16.0, boat: 7.20, cad: 0.22, prop: 0.85 };
+      const defaults = { fish: 1.10, building: 14.0, arch: 16.0, boat: 7.20, cad: 0.22, prop: 0.85 };
       document.getElementById('gen-length').value = defaults[k] || 1.0;
+    }
+
+    function toggleHighPolyOption() {
+      const on = document.getElementById('gen-high-poly').checked;
+      document.getElementById('hp-toggle-row').classList.toggle('active-opt', on);
     }
 
     function toggleIterateOptions() {
       const on = document.getElementById('gen-iterate').checked;
       document.getElementById('iter-options-panel').style.display = on ? 'block' : 'none';
       document.getElementById('iter-toggle-row').classList.toggle('active-opt', on);
+      document.getElementById('gen-target-score').value = '10.0';
+      document.getElementById('gen-rate-to-10').checked = on;
+    }
+
+    function onStrictTenToggle() {
+      document.getElementById('gen-target-score').value = '10.0';
     }
 
     function updateOrthoGridEligibility() {
@@ -627,7 +675,7 @@
       }
       // Real photos & pasted captures default cleanly to Perspective Hero/Street View!
       const kind = document.getElementById('gen-kind')?.value;
-      return kind === 'arch' ? 'street_view' : 'hero';
+      return (kind === 'arch' || kind === 'building') ? 'street_view' : 'hero';
     }
 
     function handleFileSelect(fileList) {
@@ -708,14 +756,20 @@
         return;
       }
       const kind = document.getElementById('gen-kind').value;
+      const profile = document.getElementById('gen-profile').value;
+      const bake_res = parseInt(document.getElementById('gen-bake-res').value, 10) || 2048;
       const length_m = parseFloat(document.getElementById('gen-length').value) || 1.1;
       const prompt = document.getElementById('gen-prompt').value.trim() || name;
       const ortho_blueprint_grid = document.getElementById('gen-ortho-grid').checked;
+      const high_poly_uncapped = document.getElementById('gen-high-poly').checked;
       const iterEnabled = document.getElementById('gen-iterate').checked;
+      const rate_to_ten = iterEnabled;
+      const maxItersRaw = parseInt(document.getElementById('gen-max-iters').value, 10);
       const review_loop = {
         enabled: iterEnabled,
-        target_score: parseFloat(document.getElementById('gen-target-score').value) || 9.0,
-        max_iterations: parseInt(document.getElementById('gen-max-iters').value, 10) || 3,
+        strict_ten: true,
+        target_score: 10.0,
+        max_iterations: isNaN(maxItersRaw) ? 0 : maxItersRaw,
         require_zero_qa_errors: true,
         require_zero_qa_warnings: document.getElementById('gen-qa-strict').value === 'strict',
         focus_notes: document.getElementById('gen-focus-notes').value.trim()
@@ -724,7 +778,7 @@
       const res = await fetch('/api/generate', {
         method: 'POST',
         body: JSON.stringify({
-          name, title: name, kind, length_m, prompt, engine,
+          name, title: name, kind, profile, bake_res, high_poly_uncapped, rate_to_ten, length_m, prompt, engine,
           ortho_blueprint_grid, review_loop, references: STAGED_REFS
         })
       });
@@ -822,7 +876,9 @@
             <span style="font-size:11.5px;color:var(--muted);">${escHtml(a.source)} &bull; ${escHtml(a.kind)}</span>
             <div class="pill-row">
               ${qa.available ? `<span class="pill ${qa.pass ? 'ok' : 'err'}">QA ${qa.pass ? 'PASS' : 'FAIL'} (${qa.errors_count}E/${qa.warnings_count}W)</span>` : ''}
-              ${latestR != null ? `<span class="pill ${latestR >= (a.review_loop?.target_score || 9) ? 'ok' : 'warn'}">${Number(latestR).toFixed(1)} / 10</span>` : (revOn ? `<span class="pill warn">Critic ON</span>` : '')}
+              ${a.qa_profile ? `<span class="pill">${escHtml(a.qa_profile)}</span>` : ''}
+              ${a.high_poly_uncapped ? `<span class="pill cyan">High-Poly Uncapped</span>` : ''}
+              ${latestR != null ? `<span class="pill ${latestR >= 10.0 ? 'ok' : 'warn'}">${Number(latestR).toFixed(1)} / 10</span>` : (revOn ? `<span class="pill warn">Critic ON (10/10)</span>` : '')}
               ${lod0 ? `<span class="pill cyan">${lod0.toLocaleString()} tris</span>` : ''}
               ${refCount ? `<span class="pill">${refCount} Ref(s)</span>` : ''}
             </div>
@@ -838,10 +894,10 @@
     }
 
     function renderReviewPanel(a, idx) {
-      const cfg = a.review_loop || { enabled: false, target_score: 9.0, max_iterations: 3, require_zero_qa_warnings: true, focus_notes: '' };
+      const cfg = a.review_loop || { enabled: false, target_score: 10.0, max_iterations: 0, require_zero_qa_warnings: true, focus_notes: '' };
       const hist = a.review_history || { iterations: [], status: 'NOT_STARTED' };
       const iters = hist.iterations || [];
-      const target = Number(cfg.target_score || 9.0);
+      const target = 10.0;
 
       const trajHtml = iters.length ? `
         <div class="trajectory-bar">
@@ -938,10 +994,13 @@
                 <span class="slider"></span>
               </label>
             </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-              <label style="font-size:11.5px;color:var(--muted);">Target:</label>
-              <input type="number" step="0.5" min="6" max="10" value="${target.toFixed(1)}" style="width:62px;padding:4px 7px;border-radius:7px;border:1px solid var(--border);background:#09101f;color:#fff;font-size:12px;"
-                     onchange="updateAssetReviewConfig(${idx}, { target_score: parseFloat(this.value) || 9.0 })" />
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <span class="pill cyan" title="Always 10.0 / 10 Strict — never stop or proceed on a lower score">Target: 10.0 / 10 (Strict)</span>
+              <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--cyan);cursor:pointer;">
+                <input type="checkbox" ${a.high_poly_uncapped ? 'checked' : ''} style="width:auto;accent-color:var(--cyan);"
+                       onchange="updateAssetReviewConfig(${idx}, { high_poly_uncapped: this.checked })" />
+                High-Poly Uncapped (No 300k Cap)
+              </label>
               <button class="btn" onclick="snapshotAssetIteration(${idx})">Snapshot Renders</button>
               <button class="btn btn-gold" onclick="REVIEW_FORM_OPEN=!REVIEW_FORM_OPEN; selectAsset(${idx})">+ Log Honest Review</button>
               <button class="btn btn-ai" onclick="copyNextIterPrompt(${idx})">Copy Next-Iter Fix Prompt</button>
@@ -976,8 +1035,11 @@
       `).join('');
 
       const escPath = p => (p || '').replace(/\\/g, '\\\\');
+      const qaProfile = a.qa_profile || 'roblox';
       const snapFlag = a.review_loop?.enabled ? 'true' : 'false';
       const gridFlag = a.ortho_blueprint_grid ? 'true' : 'false';
+      const hpFlag = a.high_poly_uncapped ? 'true' : 'false';
+      const maxTrisArg = (a.qa_max_tris !== null && a.qa_max_tris !== undefined) ? a.qa_max_tris : (a.high_poly_uncapped ? 0 : 300000);
 
       box.innerHTML = `
         <div class="detail-top">
@@ -989,7 +1051,7 @@
             <button class="btn" onclick="document.getElementById('add-existing-ref-input').click()">+ Add Reference Photo</button>
             <button class="btn" onclick="copyAssetBrief(${idx})">Copy AI Handoff Prompt</button>
             ${a.blend_file ? `<button class="btn btn-gold" onclick="openBlender('${escPath(a.blend_file)}')">Open in Blender</button>` : ''}
-            ${a.build_script ? `<button class="btn" onclick="runQa('${escPath(a.build_script)}', ${gridFlag}, ${snapFlag})">Run QA + Ref Compare</button>` : ''}
+            ${a.build_script ? `<button class="btn" onclick="runQa('${escPath(a.build_script)}', ${gridFlag}, ${snapFlag}, '${escHtml(qaProfile)}', ${maxTrisArg}, ${hpFlag})">Run QA + Ref Compare</button>` : ''}
             ${a.bake_script ? `<button class="btn btn-primary" onclick="runBake('${escPath(a.bake_script)}')">Bake 2K + Variants + LODs</button>` : ''}
           </div>
         </div>
@@ -1100,7 +1162,10 @@
           if (rem === 0) {
             await fetch('/api/upload-reference', { method: 'POST', body: JSON.stringify({ asset_dir: a.dir, references: uploads }) });
             await loadAssets(a.name);
-            if (a.build_script) runQa(a.build_script, !!a.ortho_blueprint_grid, !!a.review_loop?.enabled);
+            if (a.build_script) {
+              const mt = (a.qa_max_tris !== null && a.qa_max_tris !== undefined) ? a.qa_max_tris : (a.high_poly_uncapped ? 0 : 300000);
+              runQa(a.build_script, !!a.ortho_blueprint_grid, !!a.review_loop?.enabled, a.qa_profile || 'roblox', mt, !!a.high_poly_uncapped);
+            }
           }
         };
         rd.readAsDataURL(f);
@@ -1119,11 +1184,12 @@
       if (!d.ok) alert(d.error || 'Could not launch Blender');
     }
 
-    async function runQa(path, ortho_grid = false, snapshot_iteration = false) {
+    async function runQa(path, ortho_grid = false, snapshot_iteration = false, profile = 'roblox', max_tris = 300000, high_poly = false) {
       toggleConsole(true);
+      const mt = (max_tris !== null && max_tris !== undefined) ? max_tris : (high_poly ? 0 : 300000);
       const r = await fetch('/api/run-qa', {
         method: 'POST',
-        body: JSON.stringify({ path, profile: 'roblox', forward_axis: '+Y', ortho_grid, snapshot_iteration })
+        body: JSON.stringify({ path, profile: profile || 'roblox', forward_axis: '+Y', max_tris: mt, high_poly: !!high_poly, ortho_grid, snapshot_iteration })
       });
       const d = await r.json();
       if (d.job_id) watchJob(d.job_id);
@@ -1177,6 +1243,8 @@
       const r = await fetch('/api/skills');
       const d = await r.json();
       SKILLS = d.skills || [];
+      const scEl = document.getElementById('skills-count');
+      if (scEl) scEl.textContent = SKILLS.length;
       const bar = document.getElementById('skill-tabs');
       bar.innerHTML = SKILLS.map((s, i) => `<button class="btn" onclick="showSkill(${i})">${escHtml(s.name)}</button>`).join('');
       if (SKILLS.length) showSkill(0);

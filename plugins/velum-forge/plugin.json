@@ -2,7 +2,7 @@
   "name": "velum-forge",
   "displayName": "Velum Forge 3D Studio",
   "version": "1.2.0",
-  "description": "End-to-end AI 3D asset engineering suite: matched perspective reference cameras & ortho blueprints, precision build123d B-Rep CAD, Blender 5.2+ parametric/organic/arch modeling, BVH shell-clipping gates, 10-view visual QA, optional Iterative Honest Rating Review Loop, 2K Cycles GPU PBR baking, multi-variant pipelines, and 4-tier game LODs.",
+  "description": "End-to-end AI 3D asset engineering suite: matched perspective reference cameras & ortho blueprints, precision build123d B-Rep CAD, Blender 5.2+/5.3 architectural/parametric/organic quad-flow modeling, BVH shell-clipping gates, 10-view visual QA, optional Iterative Honest Rating Loop, hardware-safe dedicated 2K Cycles GPU PBR baking per asset set, multi-variant pipelines, and instance-aware 4-tier game LODs.",
   "logo": "assets/logo.svg",
   "author": {
     "name": "Velumix",

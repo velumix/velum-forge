@@ -11,7 +11,13 @@ import sys
 from pathlib import Path
 
 from . import CAD_ENGINE_DIR, EXAMPLES_DIR, REPO_ROOT, __version__
-from .bake_guard import build_safe_blender_bake_cmd, build_safe_cycles_env, default_safe_threads, gpu_bake_lock
+from .bake_guard import (
+    build_safe_blender_bake_cmd,
+    build_safe_cycles_env,
+    default_safe_threads,
+    gpu_bake_lock,
+    windows_creationflags,
+)
 from .doctor import find_blender_exe, find_venv_python, install_ai_integrations, run_doctor, set_custom_blender_exe
 from .generator import build_agent_handoff_prompt, build_ai_cli_invocation, generate_parametric_scripts, slugify
 from .references import stage_local_reference_files, sync_references_into_spec
@@ -29,7 +35,7 @@ from .studio_server import launch_studio
 
 def _run_qa_cli(
     asset_path: str,
-    profile: str = "roblox",
+    profile: str = "auto",
     forward_axis: str = "+Y",
     ref_path: str = "",
     fast: bool = False,
@@ -38,8 +44,36 @@ def _run_qa_cli(
     threads: int | None = None,
     device: str = "auto",
     user_addons: bool = False,
+    max_tris: int | None = None,
+    high_poly: bool = False,
 ) -> int:
     t_count = max(1, int(threads if threads is not None else default_safe_threads()))
+    asset_p = Path(asset_path).resolve()
+    asset_dir = asset_p.parent
+    spec: dict = {}
+    if (asset_dir / "asset_spec.json").is_file():
+        try:
+            spec = json.loads((asset_dir / "asset_spec.json").read_text(encoding="utf-8-sig"))
+        except Exception:
+            spec = {}
+
+    is_high_poly = bool(high_poly or spec.get("high_poly_uncapped", False))
+    if profile == "auto":
+        resolved_profile = str(spec.get("qa_profile") or ("game" if is_high_poly else "roblox"))
+        if is_high_poly and resolved_profile == "roblox":
+            resolved_profile = "game"
+    else:
+        resolved_profile = profile
+
+    if max_tris is not None:
+        resolved_max_tris = int(max_tris)
+    elif is_high_poly:
+        resolved_max_tris = 0
+    elif spec.get("qa_max_tris") is not None:
+        resolved_max_tris = int(spec["qa_max_tris"])
+    else:
+        resolved_max_tris = 300000
+
     if platform.system() == "Windows":
         ps_exe = shutil.which("powershell") or "powershell.exe"
         cmd = [
@@ -52,7 +86,9 @@ def _run_qa_cli(
             "-Asset",
             asset_path,
             "-Profile",
-            profile,
+            resolved_profile,
+            "-MaxTris",
+            str(resolved_max_tris),
             "-ForwardAxis",
             forward_axis,
             "-Threads",
@@ -60,6 +96,8 @@ def _run_qa_cli(
             "-Device",
             device,
         ]
+        if is_high_poly:
+            cmd.append("-HighPoly")
         if ref_path:
             cmd.extend(["-Ref", ref_path])
         if fast:
@@ -74,8 +112,6 @@ def _run_qa_cli(
 
     # Cross-platform macOS / Linux path: run Blender QA pipeline + compose_sheet.py + optional snapshot
     blender_exe = find_blender_exe() or "blender"
-    asset_p = Path(asset_path).resolve()
-    asset_dir = asset_p.parent
     out_d = REPO_ROOT / ".qa-out" / asset_p.stem
     out_d.mkdir(parents=True, exist_ok=True)
     safe_env = build_safe_cycles_env(threads=t_count, device=device, cooldown=0.0, tile_size=512)
@@ -96,10 +132,14 @@ def _run_qa_cli(
         "--out-dir",
         str(out_d),
         "--profile",
-        profile,
+        resolved_profile,
+        "--max-tris",
+        str(resolved_max_tris),
         "--forward-axis",
         forward_axis,
     ])
+    if is_high_poly:
+        b_cmd.append("--high-poly")
     if fast:
         b_cmd.append("--fast")
     if ortho_grid:
@@ -183,14 +223,18 @@ def main(argv: list[str] | None = None) -> int:
     p_gen = sub.add_parser("generate", help="Generate a 3D asset from a prompt + optional reference images!")
     p_gen.add_argument("name", help="Asset name or slug (e.g. 'red_snapper', 'ocean_dr_800', or 'patrol_rib_28')")
     p_gen.add_argument("--prompt", default="", help="Detailed natural-language description of proportions, parts & materials")
-    p_gen.add_argument("--kind", default="fish", choices=["fish", "boat", "arch", "prop", "cad"], help="3D archetype")
+    p_gen.add_argument("--kind", default="fish", choices=["fish", "boat", "building", "arch", "prop", "cad"], help="3D archetype")
     p_gen.add_argument("--length", type=float, default=1.20, help="Target real-world length/frontage in meters (default: 1.20)")
+    p_gen.add_argument("--profile", default="auto", choices=["auto", "roblox", "game", "render", "print"], help="QA profile ('auto' uses 'game' for building/arch, 'roblox' otherwise)")
+    p_gen.add_argument("--bake-res", type=int, default=2048, help="Per-set PBR bake resolution (default: 2048)")
     p_gen.add_argument("--ref", action="append", default=[], help="Reference image path(s) — repeat --ref for multiple angles")
     p_gen.add_argument("--ref-view", default="auto", help="Reference view tag (auto, hero, street_view, closeup, ortho_side, ortho_front, ortho_top)")
     p_gen.add_argument("--ortho-grid", action="store_true", help="Enable optional metric blueprint grid (strictly for ortho blueprints)")
-    p_gen.add_argument("--iterate", action="store_true", help="Enable optional Iterative Critic & Honest Rating Review Loop")
-    p_gen.add_argument("--target-score", type=float, default=9.0, help="Target honest rating (0-10) when --iterate is enabled (default: 9.0)")
-    p_gen.add_argument("--max-iterations", type=int, default=3, help="Max iterations when --iterate is enabled (default: 3)")
+    p_gen.add_argument("--iterate", action="store_true", help="Enable optional Iterative Critic & Honest Rating Review Loop (always 10.0/10 target)")
+    p_gen.add_argument("--rate-to-10", action="store_true", help="Enable Strict 10/10 Honest Rating Loop (do not rush or fake score)")
+    p_gen.add_argument("--high-poly", action="store_true", help="Opt-in High-Poly Uncapped Mode (no 300k/20k tri caps + ArchViz segment floors)")
+    p_gen.add_argument("--target-score", type=float, default=10.0, help="Target honest rating (locked at 10.0/10 strict)")
+    p_gen.add_argument("--max-iterations", type=int, default=0, help="Iteration cap when --iterate is enabled (0 = unlimited until 10.0/10)")
     p_gen.add_argument("--allow-qa-warnings", action="store_true", help="Do not cap rating on QA warnings during iterative review")
     p_gen.add_argument("--focus-notes", default="", help="Optional review critic focus instructions")
     p_gen.add_argument("--engine", default="parametric", choices=["parametric", "claude", "codex", "gemini", "handoff"], help="Generation engine")
@@ -207,6 +251,8 @@ def main(argv: list[str] | None = None) -> int:
     p_brf = sub.add_parser("brief", help="Print the complete AI Agent Handoff Prompt (or Next-Iteration Critique Prompt)")
     p_brf.add_argument("asset_dir", help="Target asset directory")
     p_brf.add_argument("--next-iteration", action="store_true", help="Print the targeted Next-Iteration Defect Fix prompt instead")
+    p_brf.add_argument("--rate-to-10", action=argparse.BooleanOptionalAction, default=None, help="Include or suppress strict 10/10 rating loop in printed brief")
+    p_brf.add_argument("--high-poly", action=argparse.BooleanOptionalAction, default=None, help="Include or suppress High-Poly Uncapped Mode (no 300k cap) in printed brief")
 
     # 3. REVIEW (Optional Core Feature: Iterative Critic & Honest Rating Reviews)
     p_rev = sub.add_parser("review", help="Optional Iterative Critic & Honest Rating Review tools (config, snapshot, log, status, prompt)")
@@ -215,10 +261,12 @@ def main(argv: list[str] | None = None) -> int:
     p_rcfg = rev_sub.add_parser("config", help="Enable/disable or configure the Iterative Review Loop for an asset")
     p_rcfg.add_argument("asset_dir", help="Target asset directory")
     grp_en = p_rcfg.add_mutually_exclusive_group()
-    grp_en.add_argument("--enable", action="store_true", help="Enable Iterative Review & Rating mode")
+    grp_en.add_argument("--enable", action="store_true", help="Enable Iterative Review & Rating mode (always 10.0/10 strict target)")
     grp_en.add_argument("--disable", action="store_true", help="Disable Iterative Review mode (single-pass)")
-    p_rcfg.add_argument("--target", type=float, default=None, help="Target honest rating out of 10 (e.g. 9.0)")
-    p_rcfg.add_argument("--max-iter", type=int, default=None, help="Maximum review iterations (e.g. 3)")
+    p_rcfg.add_argument("--rate-to-10", action="store_true", help="Enable Strict 10/10 mode (always enforced when enabled)")
+    p_rcfg.add_argument("--high-poly", action=argparse.BooleanOptionalAction, default=None, help="Toggle opt-in High-Poly Uncapped Mode (--max-tris 0) on this asset")
+    p_rcfg.add_argument("--target", type=float, default=None, help="Target honest rating (locked at 10.0/10)")
+    p_rcfg.add_argument("--max-iter", type=int, default=None, help="Optional iteration tracking cap (0 = unlimited; never approves below 10.0/10)")
     p_rcfg.add_argument("--allow-qa-warnings", action="store_true", help="Allow QA warnings without capping rating at 8.9")
     p_rcfg.add_argument("--require-zero-warnings", action="store_true", help="Require 0 QA warnings to approve")
     p_rcfg.add_argument("--focus", default=None, help="Custom critic focus notes")
@@ -264,27 +312,29 @@ def main(argv: list[str] | None = None) -> int:
 
     sub.add_parser("setup-gui", help="Launch the Setup & Workflow Installer GUI")
 
-    p_new = sub.add_parser("new", help="Scaffold a blank 3D asset generator (`boat`, `fish`, `arch`, `prop`, `cad`)")
-    p_new.add_argument("kind", choices=["boat", "fish", "arch", "prop", "cad"])
+    p_new = sub.add_parser("new", help="Scaffold a blank 3D asset generator (`boat`, `fish`, `building`, `arch`, `prop`, `cad`)")
+    p_new.add_argument("kind", choices=["boat", "fish", "building", "arch", "prop", "cad"])
     p_new.add_argument("name", help="Asset name or slug")
     p_new.add_argument("--dir", default=str(EXAMPLES_DIR))
 
     p_qa = sub.add_parser("qa", help="Run the 10-view visual & geometric QA gate (+ matched perspective & multi-ref comparison)")
     p_qa.add_argument("asset", help="Path to .py, .blend, .glb, .fbx, or .step asset")
-    p_qa.add_argument("--profile", default="roblox", choices=["roblox", "game", "render", "print"])
+    p_qa.add_argument("--profile", default="auto", choices=["auto", "roblox", "game", "render", "print"])
+    p_qa.add_argument("--max-tris", type=int, default=None, help="BVH check tri threshold (default: 300000 or 0 when --high-poly; auto-reads asset_spec.json)")
+    p_qa.add_argument("--high-poly", action="store_true", help="Opt-in High-Poly Uncapped Mode (no 300k BVH cap / no 20k part cap)")
     p_qa.add_argument("--forward-axis", default="+Y", choices=["+Y", "-Y"])
     p_qa.add_argument("--ref", default="", help="Optional explicit reference image path for side-by-side comparison")
     p_qa.add_argument("--ortho-grid", action="store_true", help="Overlay subtle metric blueprint grid strictly on ORTHO views")
     p_qa.add_argument("--snapshot-iteration", action="store_true", help="Archive renders & qa_report.json into reviews/iter_XX/")
     p_qa.add_argument("--threads", type=int, default=None, help="Cap Blender CPU threads (default: safe <= 8)")
-    p_qa.add_argument("--device", default="auto", choices=["auto", "gpu", "optix", "cuda", "cpu"], help="Cycles compute device")
+    p_qa.add_argument("--device", default="auto", choices=["auto", "gpu", "optix", "cuda", "hip", "oneapi", "metal", "cpu"], help="Cycles compute device")
     p_qa.add_argument("--user-addons", action="store_true", help="Load user Blender add-ons instead of --factory-startup")
     p_qa.add_argument("--fast", action="store_true")
 
     p_bake = sub.add_parser("bake", help="Run hardware-safe headless Blender 5.2+ 2K Cycles PBR bake + variants + LODs script")
     p_bake.add_argument("script", help="Path to bake_lod_variants.py")
     p_bake.add_argument("--threads", type=int, default=None, help="Cap Blender/OIDN CPU threads (default: safe <= 8)")
-    p_bake.add_argument("--device", default="auto", choices=["auto", "gpu", "optix", "cuda", "cpu"], help="Cycles compute device (default: auto GPU-only)")
+    p_bake.add_argument("--device", default="auto", choices=["auto", "gpu", "optix", "cuda", "hip", "oneapi", "metal", "cpu"], help="Cycles compute device (default: auto GPU-only)")
     p_bake.add_argument("--cooldown", type=float, default=1.0, help="Seconds to pause between heavy Cycles passes (default: 1.0)")
     p_bake.add_argument("--tile-size", type=int, default=512, help="Cycles tile size in px to prevent power/VRAM spikes (default: 512)")
     p_bake.add_argument("--no-lock", action="store_true", help="Bypass the sequential cross-process GPU bake lock")
@@ -307,11 +357,18 @@ def main(argv: list[str] | None = None) -> int:
         title = args.name.replace("_", " ").title()
         asset_dir = Path(args.dir).resolve() / slug
         staged = stage_local_reference_files(asset_dir, args.ref, view=args.ref_view) if args.ref else []
+        hp_on = bool(args.high_poly)
+        if args.profile == "auto":
+            resolved_profile = "game" if (hp_on or args.kind in ("building", "arch")) else "roblox"
+        else:
+            resolved_profile = args.profile
+        iter_enabled = bool(args.iterate or args.rate_to_10)
         review_cfg = {
-            "enabled": bool(args.iterate),
-            "target_score": float(args.target_score),
+            "enabled": iter_enabled,
+            "target_score": 10.0,
             "max_iterations": int(args.max_iterations),
             "require_zero_qa_warnings": not bool(args.allow_qa_warnings),
+            "strict_ten": True,
             "focus_notes": str(args.focus_notes or ""),
         }
         created = generate_parametric_scripts(
@@ -322,8 +379,12 @@ def main(argv: list[str] | None = None) -> int:
             prompt=args.prompt or title,
             length_m=args.length,
             references=staged,
+            profile=resolved_profile,
+            bake_res=args.bake_res,
             ortho_blueprint_grid=bool(args.ortho_grid),
             review_loop=review_cfg,
+            rate_to_ten=True if iter_enabled else None,
+            high_poly_uncapped=hp_on,
         )
         print(f"[Velum Forge] Staged spec & baseline generator at: {asset_dir}")
         if args.engine == "handoff":
@@ -340,10 +401,12 @@ def main(argv: list[str] | None = None) -> int:
 
         rc = _run_qa_cli(
             created["build_script"],
-            profile="roblox",
+            profile=resolved_profile,
             forward_axis="+Y",
             ortho_grid=bool(args.ortho_grid),
-            snapshot_iteration=bool(args.iterate),
+            snapshot_iteration=iter_enabled,
+            max_tris=(0 if hp_on else 300000),
+            high_poly=hp_on,
         )
         if rc != 0:
             return rc
@@ -353,7 +416,7 @@ def main(argv: list[str] | None = None) -> int:
                 cmd = build_safe_blender_bake_cmd(blender_exe, created["bake_script"])
                 env = build_safe_cycles_env()
                 with gpu_bake_lock(enabled=True, label=slug):
-                    return subprocess.call(cmd, env=env)
+                    return subprocess.call(cmd, env=env, creationflags=windows_creationflags())
         return 0
 
     if args.cmd == "add-ref":
@@ -365,7 +428,11 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "brief":
         ad = Path(args.asset_dir).resolve()
-        print(build_next_iteration_prompt(ad) if args.next_iteration else build_agent_handoff_prompt(ad))
+        print(
+            build_next_iteration_prompt(ad)
+            if args.next_iteration
+            else build_agent_handoff_prompt(ad, rate_to_ten=args.rate_to_10, high_poly=args.high_poly)
+        )
         return 0
 
     if args.cmd == "review":
@@ -382,7 +449,9 @@ def main(argv: list[str] | None = None) -> int:
                 target_score=args.target,
                 max_iterations=args.max_iter,
                 require_zero_qa_warnings=req_w,
+                strict_ten=True if args.rate_to_10 else None,
                 focus_notes=args.focus,
+                high_poly_uncapped=args.high_poly,
             )
             print(json.dumps(cfg, indent=2))
             return 0
@@ -489,6 +558,8 @@ def main(argv: list[str] | None = None) -> int:
             threads=args.threads,
             device=args.device,
             user_addons=args.user_addons,
+            max_tris=args.max_tris,
+            high_poly=bool(args.high_poly),
         )
 
     if args.cmd == "bake":
@@ -509,7 +580,7 @@ def main(argv: list[str] | None = None) -> int:
             tile_size=args.tile_size,
         )
         with gpu_bake_lock(enabled=not args.no_lock, label=Path(args.script).parent.name):
-            return subprocess.call(cmd, env=env)
+            return subprocess.call(cmd, env=env, creationflags=windows_creationflags())
 
     if args.cmd == "inspect":
         py = find_venv_python()

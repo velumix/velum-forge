@@ -16,18 +16,20 @@ param(
     [string]$Collection = "",
     [string[]]$Objects = @(),
 
-    [ValidateSet("roblox", "game", "render", "print")]
-    [string]$Profile = "roblox",
+    [ValidateSet("auto", "roblox", "game", "render", "print")]
+    [string]$Profile = "auto",
 
     [ValidateSet("auto", "cycles", "workbench")]
     [string]$Renderer = "auto",
 
+    [int]$MaxTris = -1,
+    [switch]$HighPoly,
     [switch]$Fast,
     [string]$Ref = "",
     [switch]$OrthoGrid,
     [switch]$SnapshotIteration,
     [int]$Threads = 0,
-    [ValidateSet("auto", "gpu", "optix", "cuda", "cpu")]
+    [ValidateSet("auto", "gpu", "optix", "cuda", "hip", "oneapi", "metal", "cpu")]
     [string]$Device = "auto",
     [switch]$UserAddons,
     [switch]$KeepTiles,
@@ -123,14 +125,18 @@ $AutoReviewHist = Join-Path $AssetParentDir "reviews\review_history.json"
 
 $SafeThreads = if ($Threads -gt 0) { $Threads } else { [Math]::Min(8, [Math]::Max(2, [int]([Environment]::ProcessorCount / 2))) }
 $env:VELUM_BLENDER_THREADS = "$SafeThreads"
+$env:VELUM_BAKE_THREADS = "$SafeThreads"
 $env:VELUM_CYCLES_DEVICE = "$Device"
 $env:OMP_NUM_THREADS = "$SafeThreads"
 $env:TBB_NUM_THREADS = "$SafeThreads"
+$env:OPENBLAS_NUM_THREADS = "$SafeThreads"
+$env:MKL_NUM_THREADS = "$SafeThreads"
 
 $BlenderArgs = @("-b")
 if (-not $UserAddons) { $BlenderArgs += "--factory-startup" }
 $BlenderArgs += @("-t", "$SafeThreads")
-$PipelineArgs = @("--out-dir", $OutDir, "--profile", $Profile, "--renderer", $Renderer, "--asset-name", $AssetStem, "--forward-axis", $ForwardAxis)
+$PipelineArgs = @("--out-dir", $OutDir, "--profile", $Profile, "--max-tris", "$MaxTris", "--renderer", $Renderer, "--asset-name", $AssetStem, "--forward-axis", $ForwardAxis)
+if ($HighPoly) { $PipelineArgs += "--high-poly" }
 if ($Fast) { $PipelineArgs += "--fast" }
 if ($OrthoGrid) { $PipelineArgs += "--ortho-grid" }
 if (Test-Path -LiteralPath $AutoSpecPath) { $PipelineArgs += @("--spec", $AutoSpecPath) }

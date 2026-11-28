@@ -1,4 +1,4 @@
-﻿"""Mesh/asset QA: z-fighting, detached parts, normals, topology, transforms, UVs, weights, materials
+"""Mesh/asset QA: z-fighting, detached parts, normals, topology, transforms, UVs, weights, materials
 (faces on empty slots, unused slots, missing texture files, data maps set to sRGB).
 
 Pass the objects of ONE asset (they are checked together: islands far from all others = floating).
@@ -190,9 +190,12 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
     # ---- gather world-space triangles of all objects --------------------------------
     verts, tris, tri_meta = [], [], []      # tri_meta: (obj_i, island_gid, normal)
     island_info = {}                         # gid -> dict(ob, verts, tris, bbox)
-    gid_base = 0
+    mesh_topo_cache = {}                     # ob.data.as_pointer() -> mesh-local counts & uv stats
+    obj_aabb = []                            # per-object world AABB (lo, hi)
+    obj_proto_key = []                       # non-zero key when mesh+scale can skip duplicate intra-object BVH probes
     min_z = math.inf
     for oi, ob in enumerate(obs):
+        gid_base = len(island_info)
         bm = _mesh_world(ob, not no_modifiers)
         m = {}
         isl = _islands(bm)
@@ -200,27 +203,50 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
         base_v = len(verts)
         verts.extend(v.co.copy() for v in bm.verts)
         if bm.verts:
-            min_z = min(min_z, min(v.co.z for v in bm.verts))
-        # topology
-        ecount = Counter(len(e.link_faces) for e in bm.edges)
+            xs = [v.co.x for v in bm.verts]
+            ys = [v.co.y for v in bm.verts]
+            zs = [v.co.z for v in bm.verts]
+            min_z = min(min_z, min(zs))
+            obj_aabb.append((Vector((min(xs), min(ys), min(zs))), Vector((max(xs), max(ys), max(zs)))))
+        else:
+            obj_aabb.append((Vector((0.0, 0.0, 0.0)), Vector((0.0, 0.0, 0.0))))
+
         m["verts"], m["faces"] = len(bm.verts), len(bm.faces)
         m["tris"] = sum(len(f.verts) - 2 for f in bm.faces)
-        m["ngons"] = sum(1 for f in bm.faces if len(f.verts) > 4)
-        m["boundary_edges"] = ecount.get(1, 0)
-        m["nonmanifold_edges"] = sum(c for k, c in ecount.items() if k > 2)
-        m["wire_edges"] = ecount.get(0, 0)
-        m["loose_verts"] = sum(1 for v in bm.verts if not v.link_edges)
-        m["degenerate_faces"] = sum(1 for f in bm.faces if f.calc_area() < 1e-10)
-        m["zero_length_edges"] = sum(1 for e in bm.edges if e.calc_length() < 1e-7)
-        directed = Counter((l.vert.index, l.link_loop_next.vert.index) for f in bm.faces for l in f.loops)
-        m["inconsistent_normals_edges"] = sum(1 for k, c in directed.items() if c > 1)
-        kd = KDTree(len(bm.verts))
-        for v in bm.verts:
-            kd.insert(v.co, v.index)
-        kd.balance()
-        m["duplicate_verts"] = sum(1 for v in bm.verts
-                                   if len(kd.find_range(v.co, 1e-5)) > 1) // 2
         m["islands"] = n_isl
+
+        me_ptr = ob.data.as_pointer() if ob.data is not None else 0
+        is_unmod = bool(no_modifiers or not ob.modifiers)
+        s = ob.scale
+        obj_proto_key.append(
+            (me_ptr, round(s.x, 4), round(s.y, 4), round(s.z, 4))
+            if (is_unmod and me_ptr and s.x > 0 and s.y > 0 and s.z > 0)
+            else None
+        )
+        cached = mesh_topo_cache.get(me_ptr) if (is_unmod and me_ptr) else None
+        if cached is not None:
+            m.update(cached)
+        else:
+            ecount = Counter(len(e.link_faces) for e in bm.edges)
+            topo = {
+                "ngons": sum(1 for f in bm.faces if len(f.verts) > 4),
+                "boundary_edges": ecount.get(1, 0),
+                "nonmanifold_edges": sum(c for k, c in ecount.items() if k > 2),
+                "wire_edges": ecount.get(0, 0),
+                "loose_verts": sum(1 for v in bm.verts if not v.link_edges),
+                "degenerate_faces": sum(1 for f in bm.faces if f.calc_area() < 1e-10),
+                "zero_length_edges": sum(1 for e in bm.edges if e.calc_length() < 1e-7),
+            }
+            directed = Counter((l.vert.index, l.link_loop_next.vert.index) for f in bm.faces for l in f.loops)
+            topo["inconsistent_normals_edges"] = sum(1 for k, c in directed.items() if c > 1)
+            kd = KDTree(len(bm.verts))
+            for v in bm.verts:
+                kd.insert(v.co, v.index)
+            kd.balance()
+            topo["duplicate_verts"] = sum(1 for v in bm.verts
+                                          if len(kd.find_range(v.co, 1e-5)) > 1) // 2
+            m.update(topo)
+
         # per-island volume sign + bbox (closed islands only for inversion test)
         vol, closed = defaultdict(float), defaultdict(lambda: True)
         for e in bm.edges:
@@ -243,6 +269,14 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
             tri_meta.append((oi, gid_base + g, f.normal.copy()))
         bm_t.free()
         m["inside_out_islands"] = sum(1 for g in range(n_isl) if closed[g] and vol[g] < -1e-9)
+        if cached is None and me_ptr:
+            mesh_topo_cache[me_ptr] = {
+                k: m[k] for k in (
+                    "ngons", "boundary_edges", "nonmanifold_edges", "wire_edges",
+                    "loose_verts", "degenerate_faces", "zero_length_edges",
+                    "inconsistent_normals_edges", "duplicate_verts", "inside_out_islands",
+                )
+            }
         groups = defaultdict(list)
         for i, g in enumerate(isl):
             groups[g].append(i)
@@ -285,10 +319,17 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
                 flag("wt", f"{ob.name}: {over4} verts with >4 bone influences")
         # uv
         if uv:
-            bm_l = bmesh.new()
-            bm_l.from_mesh(ob.data)
-            m.update(_uv_stats(ob, bm_l))
-            bm_l.free()
+            uv_cached = mesh_topo_cache.get((me_ptr, "uv")) if me_ptr else None
+            if uv_cached is not None:
+                m.update(uv_cached)
+            else:
+                bm_l = bmesh.new()
+                bm_l.from_mesh(ob.data)
+                uv_stats = _uv_stats(ob, bm_l)
+                bm_l.free()
+                m.update(uv_stats)
+                if me_ptr:
+                    mesh_topo_cache[(me_ptr, "uv")] = uv_stats
             if m["uv_maps"] == 0:
                 flag("uv", f"{ob.name}: no UV map")
             else:
@@ -317,21 +358,51 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
             flag("ng", f"{ob.name}: {m['ngons']} n-gons")
         lim = TRI_LIMIT.get(profile)
         if lim and m["tris"] > lim:
-            errors.append(f"{ob.name}: {m['tris']} tris > {profile} limit {lim}")
+            errors.append(
+                f"{ob.name}: {m['tris']} tris > {profile} limit {lim} "
+                "(split joined repeated/separable objects—e.g. 2+ stools or chairs—into separate linked instances or sub-parts before reducing detail)"
+            )
         per[ob.name] = m
 
-    if len(tris) > max_tris:
+    if max_tris and max_tris > 0 and len(tris) > max_tris:
         warnings.append(f"{len(tris)} tris > max_tris {max_tris}: z-fighting/floating checks skipped")
-        return _result(errors, warnings, per, min_z, tol, [], [], [])
+        return _result(errors, warnings, per, min_z, tol, [], [], [], (), skipped_zf=True)
 
     bvh = BVHTree.FromPolygons(verts, tris, epsilon=0.0)
     tri_sets = [set(t) for t in tris]
     for ti, (_, g, _) in enumerate(tri_meta):
         island_info[g]["tris"].append(ti)
 
+    # Precompute instance prototype dedup & AABB neighbor flags so uncapped high-poly scenes stay fast
+    n_obs = len(obs)
+    has_neighbor = [False] * n_obs
+    for i in range(n_obs):
+        lo_i, hi_i = obj_aabb[i]
+        for j in range(i + 1, n_obs):
+            lo_j, hi_j = obj_aabb[j]
+            if (
+                lo_i.x - eps <= hi_j.x and hi_i.x + eps >= lo_j.x
+                and lo_i.y - eps <= hi_j.y and hi_i.y + eps >= lo_j.y
+                and lo_i.z - eps <= hi_j.z and hi_i.z + eps >= lo_j.z
+            ):
+                has_neighbor[i] = True
+                has_neighbor[j] = True
+    seen_proto_self = set()
+    dup_instance_obj = [False] * n_obs
+    for oi, pkey in enumerate(obj_proto_key):
+        if pkey is not None:
+            if pkey in seen_proto_self:
+                dup_instance_obj[oi] = True
+            else:
+                seen_proto_self.add(pkey)
+
     # ---- z-fighting: parallel faces within eps whose areas overlap --------------------
     zf_pairs, contact_pairs = set(), set()
     for ti, t in enumerate(tris):
+        oi = tri_meta[ti][0]
+        is_dup = dup_instance_obj[oi]
+        if is_dup and not has_neighbor[oi]:
+            continue
         a, b, c = (verts[i] for i in t)
         n = tri_meta[ti][2]
         if n.length < 0.5:
@@ -340,6 +411,8 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
         for p in (cen, cen.lerp(a, .6), cen.lerp(b, .6), cen.lerp(c, .6)):
             for _, _, tj, _ in bvh.find_nearest_range(p, eps):
                 if tj is None or tj == ti:
+                    continue
+                if is_dup and tri_meta[tj][0] == oi:
                     continue
                 if tri_sets[ti] & tri_sets[tj]:
                     continue
@@ -408,12 +481,13 @@ def run(objects=None, profile="game", eps=0.001, tol=0.002, no_modifiers=False, 
     return _result(errors, warnings, per, min_z, tol, zf, floating, contact, enclosed)
 
 
-def _result(errors, warnings, per, min_z, tol, zf, floating, contact, enclosed=()):
+def _result(errors, warnings, per, min_z, tol, zf, floating, contact, enclosed=(), skipped_zf=False):
     ground = None if min_z == math.inf else round(min_z, 4)
     if ground is not None and abs(ground) > max(tol, 1e-3):
         warnings.append(f"asset lowest point z={ground} (not resting on ground plane z=0)")
     return {"ok": True, "pass": not errors, "errors": errors, "warnings": warnings,
             "ground_z": ground, "zfighting": zf, "floating": floating,
+            "zfight_floating_skipped": bool(skipped_zf),
             "back_to_back": contact, "enclosed": list(enclosed), "objects": per}
 
 

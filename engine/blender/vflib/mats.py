@@ -1,4 +1,4 @@
-﻿"""PBR material library.
+"""PBR material library.
 
 Every material made here stores its flat game values as custom properties
 (`sc_srgb`, `sc_roughness`, `sc_metallic`, `sc_role`, `sc_alpha`) so `palette.py` can bake a

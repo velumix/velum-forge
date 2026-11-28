@@ -1,4 +1,4 @@
-﻿"""Look-dev & verification renders that never disturb the user's scene settings.
+"""Look-dev & verification renders that never disturb the user's scene settings.
 
     from sclib import render
     render.render_views(objs, out_dir, views=("hero", "stern", "side", "top"), backdrop="sea")
@@ -140,13 +140,14 @@ def render_views(objs, out_dir, views=("hero",), res=(1600, 900), engine="EEVEE"
     if cam.name not in studio_col.objects:
         studio_col.objects.link(cam)
     sc.camera = cam
+    from . import bake
+
     used = set_engine(sc, engine)
     if used == "CYCLES":
-        from . import bake
-
         bake.enable_cycles_gpu(sc, use_denoising=True)
         sc.cycles.samples = samples
     else:
+        bake.configure_safe_threads(sc)
         try:
             sc.eevee.taa_render_samples = samples
             sc.eevee.use_raytracing = True
@@ -161,10 +162,10 @@ def render_views(objs, out_dir, views=("hero",), res=(1600, 900), engine="EEVEE"
             spec = VIEWS[v] if isinstance(v, str) else v
             name = v if isinstance(v, str) else spec.get("name", "view")
             frame_camera(cam, objs, spec["dir"], spec.get("lens", 50), spec.get("margin", 1.05), res[0] / res[1])
-            sc.render.filepath = os.path.join(out_dir, f"{prefix}{name}.png")
-            bpy.ops.render.render(write_still=True)
-            paths.append(sc.render.filepath)
-            core.log("rendered", sc.render.filepath)
+            out_path = os.path.join(out_dir, f"{prefix}{name}.png")
+            bake.render_still_safe(sc, out_path)
+            paths.append(out_path)
+            core.log("rendered", out_path)
     finally:
         sc.camera = saved["camera"]
         sc.render.engine = saved["engine"]

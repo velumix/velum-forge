@@ -1,4 +1,4 @@
-﻿"""Palette atlas texturing (the classic game-ready "gradient/palette" technique).
+"""Palette atlas texturing (the classic game-ready "gradient/palette" technique).
 
 Every material used by an asset becomes one flat cell in a small atlas (Color / Roughness /
 Metalness PNGs). Each face's UVs collapse onto its material's cell centre, so an entire asset

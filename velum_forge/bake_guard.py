@@ -1,10 +1,14 @@
 """Hardware-safe Cycles GPU/CPU bake runner & cross-process sequential GPU lock (`velum_forge.bake_guard`).
 
 Prevents simultaneous GPU + all-core CPU power spikes and overlapping GPU bakes by:
-- Enforcing safe CPU thread caps (`-t` + `VELUM_BLENDER_THREADS` + `OMP_NUM_THREADS`).
+- Routing headless bake scripts through `engine/blender/safe_bake_runner.py` so every
+  `bpy.ops.object.bake` and `bpy.ops.render.render` call enforces GPU-only devices, GPU denoising,
+  thread caps, tiling, and thermal cooldowns—even in custom or legacy bake scripts.
+- Enforcing safe CPU thread caps (`-t` + `VELUM_BLENDER_THREADS` + `OMP`/`TBB`/`OPENBLAS`/`MKL`).
 - Exporting safe Cycles environment defaults (`VELUM_CYCLES_DEVICE`, `VELUM_CYCLES_TILE_SIZE`, `VELUM_BAKE_COOLDOWN`).
-- Running headless Blender with `--factory-startup` by default (opt-in `--user-addons`) so heavy UI add-ons don't stall or destabilize batch jobs.
-- Serializing concurrent GPU bakes via a stale-PID-safe lock file (`~/.velum-forge/gpu_bake.lock`, opt-out via `--no-lock`).
+- Running headless Blender with `--factory-startup` by default (opt-in `--user-addons`) and Windows
+  `BELOW_NORMAL_PRIORITY_CLASS` so background batch jobs stay thermally smooth and responsive.
+- Serializing concurrent GPU bakes via a crash-safe, stale-PID-recovering lock file (`~/.velum-forge/gpu_bake.lock`, opt-out via `--no-lock`).
 """
 from __future__ import annotations
 
@@ -12,11 +16,22 @@ import contextlib
 import json
 import os
 import platform
+import subprocess
 import time
 from pathlib import Path
 from typing import Callable, Iterator
 
+from . import BLENDER_ENGINE_DIR
+
 LOCK_PATH = Path.home() / ".velum-forge" / "gpu_bake.lock"
+SAFE_BAKE_RUNNER = BLENDER_ENGINE_DIR / "safe_bake_runner.py"
+
+
+def windows_creationflags() -> int:
+    """Return `BELOW_NORMAL_PRIORITY_CLASS` on Windows (0 elsewhere) for smoother batch scheduling."""
+    if platform.system() == "Windows":
+        return getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0x00004000)
+    return 0
 
 
 def default_safe_threads() -> int:
@@ -35,16 +50,23 @@ def build_safe_blender_bake_cmd(
     threads: int | None = None,
     user_addons: bool = False,
     extra_script_args: list[str] | None = None,
+    use_runner: bool = True,
 ) -> list[str]:
-    """Construct a safe headless Blender command for baking/rendering."""
+    """Construct a hardware-safe headless Blender command routed through `safe_bake_runner.py`."""
     t_count = max(1, int(threads if threads is not None else default_safe_threads()))
     cmd = [blender_exe, "-b"]
     if not user_addons:
         cmd.append("--factory-startup")
-    cmd.extend(["-t", str(t_count), "--python-exit-code", "1", "-P", os.path.abspath(script_path)])
-    if extra_script_args:
-        cmd.append("--")
-        cmd.extend(extra_script_args)
+    abs_script = os.path.abspath(script_path)
+    if use_runner and SAFE_BAKE_RUNNER.is_file():
+        cmd.extend(["-t", str(t_count), "--python-exit-code", "1", "-P", str(SAFE_BAKE_RUNNER), "--", abs_script])
+        if extra_script_args:
+            cmd.extend(extra_script_args)
+    else:
+        cmd.extend(["-t", str(t_count), "--python-exit-code", "1", "-P", abs_script])
+        if extra_script_args:
+            cmd.append("--")
+            cmd.extend(extra_script_args)
     return cmd
 
 
@@ -63,9 +85,11 @@ def build_safe_cycles_env(
     env["VELUM_CYCLES_DEVICE"] = str(device or "auto").strip().lower()
     env["VELUM_BAKE_COOLDOWN"] = str(max(0.0, float(cooldown)))
     env["VELUM_CYCLES_TILE_SIZE"] = str(max(64, int(tile_size)))
-    # Cap OpenMP/TBB worker pools used by OpenImageDenoise & mesh ops
+    # Cap OpenMP/TBB/BLAS worker pools used by OpenImageDenoise, mesh ops & NumPy
     env["OMP_NUM_THREADS"] = str(t_count)
     env["TBB_NUM_THREADS"] = str(t_count)
+    env["OPENBLAS_NUM_THREADS"] = str(t_count)
+    env["MKL_NUM_THREADS"] = str(t_count)
     return env
 
 
@@ -141,6 +165,10 @@ def gpu_bake_lock(
             fd = os.open(str(lf), os.O_CREAT | os.O_EXCL | os.O_WRONLY)
             payload = json.dumps({"pid": os.getpid(), "label": label, "started_at": time.time()}).encode("utf-8")
             os.write(fd, payload)
+            try:
+                os.fsync(fd)
+            except OSError:
+                pass
             os.close(fd)
             fd = None
             break

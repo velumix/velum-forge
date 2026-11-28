@@ -1,4 +1,4 @@
-﻿--!nocheck
+--!nocheck
 --[[
 	Velum Forge - generated Studio setup for "__ASSET__" (tools/blender/sclib/export.py).
 	DO NOT EDIT BY HAND: re-export from Blender instead.
@@ -18,6 +18,9 @@ local TEXTURE_IDS = {
 	Roughness = "", -- rbxassetid://...  (__ASSET__ RoughnessMap PNG)
 	Metalness = "", -- rbxassetid://...  (__ASSET__ MetalnessMap PNG)
 }
+
+-- Optional per-texture-set SurfaceAppearance overrides for multi-set 2K scenes:
+local TEXTURE_SETS = __TEXTURE_SETS__
 
 local HttpService = game:GetService("HttpService")
 local CollectionService = game:GetService("CollectionService")
@@ -158,6 +161,10 @@ for name, info in M.parts do
 	if not p then
 		continue
 	end
+	local setIds = (info.texture_set and TEXTURE_SETS[info.texture_set]) or nil
+	local texIds = (setIds and setIds.Color and setIds.Color ~= "" and setIds) or TEXTURE_IDS
+	local useSetSA = (texIds ~= nil and texIds.Color ~= nil and texIds.Color ~= "") or useSurfaceAppearance
+	local isBakedRole = info.role == "solid" or string.sub(tostring(info.role or ""), 1, 6) == "baked_"
 	if info.role == "glass" or info.role == "neon" then
 		for _, c in p:GetChildren() do
 			if c:IsA("SurfaceAppearance") then
@@ -173,7 +180,7 @@ for name, info in M.parts do
 		if not existingSA and (not p:IsA("MeshPart") or p.TextureID == "") then
 			p.Color = Color3.new(info.color[1], info.color[2], info.color[3])
 		end
-	elseif useSurfaceAppearance then
+	elseif useSetSA and isBakedRole and texIds.Color ~= "" then
 		for _, c in p:GetChildren() do
 			if c:IsA("SurfaceAppearance") then
 				c:Destroy()
@@ -181,12 +188,16 @@ for name, info in M.parts do
 		end
 		local sa = mark(Instance.new("SurfaceAppearance"))
 		pcall(function()
-			sa.ColorMap = TEXTURE_IDS.Color
-			if TEXTURE_IDS.Normal ~= "" then
-				sa.NormalMap = TEXTURE_IDS.Normal
+			sa.ColorMap = texIds.Color
+			if texIds.Normal and texIds.Normal ~= "" then
+				sa.NormalMap = texIds.Normal
 			end
-			sa.RoughnessMap = TEXTURE_IDS.Roughness
-			sa.MetalnessMap = TEXTURE_IDS.Metalness
+			if texIds.Roughness and texIds.Roughness ~= "" then
+				sa.RoughnessMap = texIds.Roughness
+			end
+			if texIds.Metalness and texIds.Metalness ~= "" then
+				sa.MetalnessMap = texIds.Metalness
+			end
 		end)
 		sa.Parent = p
 		if p:IsA("MeshPart") then

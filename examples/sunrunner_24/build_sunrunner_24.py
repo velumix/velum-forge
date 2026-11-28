@@ -1,4 +1,4 @@
-﻿r"""Sunrunner 24 â€” 24 ft (7.32 m) Offshore Center-Console T-Top Boat Builder (v2 Realism Overhaul).
+r"""Sunrunner 24 â€” 24 ft (7.32 m) Offshore Center-Console T-Top Boat Builder (v2 Realism Overhaul).
 
 Combines precision B-Rep CAD marine hardware (`cad/*.glb` from `build_hardware_cad.py`)
 with sculpted naval-architecture hull, Euro-transom motorwell, rounded glass-bridge helm console,
@@ -2945,6 +2945,10 @@ def render_closeup_verification_views(meshes: list[bpy.types.Object], out_dir: s
                             d.use = (d.type == dt)
                         sc.cycles.device = "GPU"
                         if dt == "OPTIX":
+                            try:
+                                sc.cycles.denoising_use_gpu = True
+                            except Exception:
+                                pass
                             sc.cycles.denoiser = "OPTIX"
                         else:
                             sc.cycles.denoiser = "OPENIMAGEDENOISE"
@@ -3000,8 +3004,13 @@ def render_closeup_verification_views(meshes: list[bpy.types.Object], out_dir: s
             cam.data.clip_start = 0.05
             cam.data.clip_end = 120.0
             out_path = os.path.join(out_dir, fname)
-            sc.render.filepath = out_path
-            bpy.ops.render.render(write_still=True)
+            try:
+                from vflib import bake as _vf_bake
+
+                _vf_bake.render_still_safe(sc, out_path)
+            except Exception:
+                sc.render.filepath = out_path
+                bpy.ops.render.render(write_still=True)
             rendered.append(out_path)
             core.log("rendered close-up", out_path)
     finally:
@@ -3016,7 +3025,35 @@ def render_closeup_verification_views(meshes: list[bpy.types.Object], out_dir: s
 
 def _safe_copy(src: str, dst: str) -> bool:
     try:
-        shutil.copy2(src, dst)
+        from vflib import bake as _vf_bake
+
+        _vf_bake._atomic_copy_fsync(src, dst)
+        return True
+    except PermissionError:
+        core.log(f"WARNING: file locked by open viewer, skipped overwrite of {dst}")
+        return False
+    except Exception:
+        pass
+    try:
+        abs_dst = os.path.abspath(dst)
+        dst_dir = os.path.dirname(abs_dst)
+        os.makedirs(dst_dir, exist_ok=True)
+        staged = os.path.join(dst_dir, f".__vf_stage_{os.getpid()}_{os.path.basename(abs_dst)}")
+        try:
+            shutil.copy2(src, staged)
+            try:
+                with open(staged, "rb+") as fh:
+                    fh.flush()
+                    os.fsync(fh.fileno())
+            except OSError:
+                pass
+            os.replace(staged, abs_dst)
+        finally:
+            if os.path.exists(staged):
+                try:
+                    os.remove(staged)
+                except OSError:
+                    pass
         return True
     except PermissionError:
         core.log(f"WARNING: file locked by open viewer, skipped overwrite of {dst}")

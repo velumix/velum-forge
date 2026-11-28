@@ -1,4 +1,4 @@
-﻿"""Headless Blender 5.2+ visual QA and multi-angle render pipeline for Velum Forge.
+"""Headless Blender 5.2+ visual QA and multi-angle render pipeline for Velum Forge.
 
 Usage:
     blender -b [scene.blend] --python-exit-code 1 -P tools/blender/qa_pipeline.py -- \
@@ -86,7 +86,11 @@ def _import_asset(path: str) -> None:
         script_dir = os.path.dirname(os.path.abspath(path))
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)
-        runpy.run_path(path, run_name="__main__")
+        try:
+            runpy.run_path(path, run_name="__main__")
+        except SystemExit as exc:
+            if exc.code not in (0, None):
+                raise RuntimeError(f"Build script exited with code {exc.code}: {path}") from exc
     else:
         raise ValueError(f"Unsupported --input extension: {ext}")
 
@@ -218,11 +222,15 @@ def _configure_cycles_gpu(scene: bpy.types.Scene, samples: int) -> str:
     scene.render.engine = "CYCLES"
     scene.cycles.samples = samples
     cpus = os.cpu_count() or 8
+    env_t = os.environ.get("VELUM_BLENDER_THREADS", "").strip()
+    safe_threads = int(env_t) if env_t.isdigit() and int(env_t) > 0 else min(8, max(2, cpus // 2))
+    env_ts = os.environ.get("VELUM_CYCLES_TILE_SIZE", "").strip()
+    safe_tile = int(env_ts) if env_ts.isdigit() and int(env_ts) >= 64 else 512
     try:
         scene.render.threads_mode = "FIXED"
-        scene.render.threads = min(8, max(2, cpus // 2))
+        scene.render.threads = safe_threads
         scene.cycles.use_auto_tile = True
-        scene.cycles.tile_size = 512
+        scene.cycles.tile_size = safe_tile
     except Exception:
         pass
 
@@ -250,6 +258,10 @@ def _configure_cycles_gpu(scene: bpy.types.Scene, samples: int) -> str:
     scene.cycles.use_denoising = True
     if device_used == "OPTIX":
         try:
+            scene.cycles.denoising_use_gpu = True
+        except Exception:
+            pass
+        try:
             scene.cycles.denoiser = "OPTIX"
         except Exception:
             pass
@@ -260,6 +272,51 @@ def _configure_cycles_gpu(scene: bpy.types.Scene, samples: int) -> str:
         except Exception:
             pass
     return device_used
+
+
+def _render_still(scene: bpy.types.Scene, out_png: str) -> str:
+    """Render via `vflib.bake.render_still_safe` (atomic fsync + GPU-only guard + cooldown)."""
+    try:
+        from vflib import bake as _vf_bake
+
+        return _vf_bake.render_still_safe(scene, out_png)
+    except Exception:
+        pass
+    import shutil
+    import tempfile
+    import time
+
+    abs_dst = os.path.abspath(out_png)
+    dst_dir = os.path.dirname(abs_dst)
+    os.makedirs(dst_dir, exist_ok=True)
+    tmp_p = os.path.join(tempfile.gettempdir(), f"__vf_qa_{os.getpid()}_{os.path.basename(abs_dst)}")
+    staged = os.path.join(dst_dir, f".__vf_stage_{os.getpid()}_{os.path.basename(abs_dst)}")
+    scene.render.filepath = tmp_p
+    bpy.ops.render.render(write_still=True)
+    try:
+        shutil.copy2(tmp_p, staged)
+        try:
+            with open(staged, "rb+") as fh:
+                fh.flush()
+                os.fsync(fh.fileno())
+        except OSError:
+            pass
+        for attempt in range(6):
+            try:
+                os.replace(staged, abs_dst)
+                break
+            except PermissionError:
+                if attempt == 5:
+                    raise
+                time.sleep(0.4)
+    finally:
+        for p in (tmp_p, staged):
+            if os.path.exists(p):
+                try:
+                    os.remove(p)
+                except OSError:
+                    pass
+    return out_png
 
 
 def _build_studio(lo: Vector, hi: Vector) -> tuple[bpy.types.Collection, bpy.types.World]:
@@ -366,7 +423,10 @@ def _compute_suncity_metrics(targets: list[bpy.types.Object], profile: str, qa: 
     if profile == "roblox":
         for part_name, t in sc_part_tris.items():
             if t > 20000:
-                msg = f"sc_part '{part_name}': combined {t} tris > Roblox 20,000 limit"
+                msg = (
+                    f"sc_part '{part_name}': combined {t} tris > Roblox 20,000 limit "
+                    "(split joined repeated/separable objects—e.g. 2+ stools or chairs—into separate linked instances or sub-parts before reducing detail)"
+                )
                 if msg not in qa["errors"]:
                     qa["errors"].append(msg)
                     qa["pass"] = False
@@ -471,6 +531,23 @@ def run_pipeline(args: argparse.Namespace) -> dict:
 
     os.makedirs(args.out_dir, exist_ok=True)
     spec = _load_asset_spec(args)
+    is_high_poly = bool(getattr(args, "high_poly", False) or spec.get("high_poly_uncapped", False))
+    if args.profile == "auto":
+        resolved_profile = str(spec.get("qa_profile") or ("game" if is_high_poly else "roblox"))
+        if is_high_poly and resolved_profile == "roblox":
+            resolved_profile = "game"
+    else:
+        resolved_profile = args.profile
+
+    if args.max_tris is not None and args.max_tris >= 0:
+        resolved_max_tris = int(args.max_tris)
+    elif is_high_poly:
+        resolved_max_tris = 0
+    elif spec.get("qa_max_tris") is not None:
+        resolved_max_tris = int(spec["qa_max_tris"])
+    else:
+        resolved_max_tris = 300000
+
     asset_name = args.asset_name or spec.get("title") or (
         os.path.splitext(os.path.basename(args.input))[0]
         if args.input
@@ -478,11 +555,13 @@ def run_pipeline(args: argparse.Namespace) -> dict:
         or (os.path.splitext(os.path.basename(bpy.data.filepath))[0] if bpy.data.filepath else "SceneAsset")
     )
 
-    qa = qa_check.run(objects=[o.name for o in targets], profile=args.profile)
-    metrics = _compute_suncity_metrics(targets, args.profile, qa)
+    qa = qa_check.run(objects=[o.name for o in targets], profile=resolved_profile, max_tris=resolved_max_tris)
+    metrics = _compute_suncity_metrics(targets, resolved_profile, qa)
     qa.update(metrics)
     qa["asset_name"] = asset_name
-    qa["profile"] = args.profile
+    qa["profile"] = resolved_profile
+    qa["max_tris"] = resolved_max_tris
+    qa["high_poly_uncapped"] = is_high_poly
 
     res_x = 512 if args.fast else args.res_x
     res_y = 384 if args.fast else args.res_y
@@ -554,8 +633,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
             d = _oriented_dir(direction, args.forward_axis, is_top=(key == "top"))
             _frame_camera(cam, lo, hi, d, proj, res_x, res_y)
             out_png = os.path.join(args.out_dir, f"tile_{key}.png")
-            sc.render.filepath = out_png
-            bpy.ops.render.render(write_still=True)
+            _render_still(sc, out_png)
             tile_meta = {"path": out_png, "label": label, "projection": proj}
             if proj == "ORTHO":
                 tile_meta["ortho_scale_m"] = round(float(cam.data.ortho_scale), 4)
@@ -567,8 +645,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
         for r_idx, rcam in enumerate(scene_ref_cams[:8]):
             sc.camera = rcam
             out_png = os.path.join(args.out_dir, f"tile_refcam_{r_idx:02d}.png")
-            sc.render.filepath = out_png
-            bpy.ops.render.render(write_still=True)
+            _render_still(sc, out_png)
             ref_img = str(rcam.get("vf_ref_image") or "")
             vw = str(rcam.get("vf_ref_view") or rcam.name)
             lens_mm = round(float(rcam.data.lens), 1)
@@ -598,8 +675,16 @@ def run_pipeline(args: argparse.Namespace) -> dict:
             "side": "side",
         }
         persp_fallback_idx = len(scene_ref_cams)
+        spec_base_dir = os.path.dirname(os.path.abspath(args.spec or args.input)) if (getattr(args, "spec", "") or args.input) else ""
         for s_ref in (spec.get("references") or [])[:8]:
-            rp = str(s_ref.get("path") or "")
+            raw_rp = str(s_ref.get("path") or s_ref.get("filename") or "")
+            rp = raw_rp
+            if rp and not os.path.isabs(rp) and spec_base_dir:
+                rp = os.path.join(spec_base_dir, rp)
+            if (not rp or not os.path.isfile(rp)) and raw_rp and spec_base_dir:
+                cand_rp = os.path.join(spec_base_dir, "references", os.path.basename(raw_rp))
+                if os.path.isfile(cand_rp):
+                    rp = cand_rp
             if not rp or not os.path.isfile(rp):
                 continue
             norm_rp = os.path.normcase(os.path.abspath(rp))
@@ -624,8 +709,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
                 cam_cfg = dict(s_ref.get("camera") or {})
                 _frame_perspective_spec(cam, lo, hi, cam_cfg, res_x, res_y)
                 out_png = os.path.join(args.out_dir, f"tile_refcam_{persp_fallback_idx:02d}.png")
-                sc.render.filepath = out_png
-                bpy.ops.render.render(write_still=True)
+                _render_still(sc, out_png)
                 lens_mm = round(float(cam.data.lens), 1)
                 lbl = f"MATCHED CAM: {vw.upper()} (PERSP {lens_mm:g}mm)"
                 tiles[f"refcam_{persp_fallback_idx:02d}"] = {"path": out_png, "label": lbl, "projection": "PERSP", "lens_mm": lens_mm}
@@ -643,8 +727,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
         bottom_dir = _oriented_dir((0.75, -0.75, -0.75), args.forward_axis)
         _frame_camera(cam, lo, hi, bottom_dir, "PERSP", res_x, res_y)
         bottom_png = os.path.join(args.out_dir, "tile_diag_bottom.png")
-        sc.render.filepath = bottom_png
-        bpy.ops.render.render(write_still=True)
+        _render_still(sc, bottom_png)
         tiles["diag_bottom"] = {"path": bottom_png, "label": "UNDERBODY / BOTTOM", "projection": "PERSP"}
 
         # 2) Diagnostic 1: Wireframe (Hero 3/4)
@@ -667,8 +750,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
             temp_obs.append(w)
 
         wire_png = os.path.join(args.out_dir, "tile_diag_wire.png")
-        sc.render.filepath = wire_png
-        bpy.ops.render.render(write_still=True)
+        _render_still(sc, wire_png)
         tiles["diag_wire"] = {"path": wire_png, "label": "WIREFRAME (HERO 3/4)", "projection": "PERSP"}
 
         for w in temp_obs:
@@ -678,8 +760,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
         # 3) Diagnostic 2: Part Colors (Hero 3/4)
         _set_workbench(sc, "RANDOM", cavity=True)
         parts_png = os.path.join(args.out_dir, "tile_diag_parts.png")
-        sc.render.filepath = parts_png
-        bpy.ops.render.render(write_still=True)
+        _render_still(sc, parts_png)
         tiles["diag_parts"] = {"path": parts_png, "label": "PART COLORS (HERO 3/4)", "projection": "PERSP"}
 
         # 4) Diagnostic 3: Face Orientation (Blue=Outward / Red=Flipped)
@@ -687,8 +768,7 @@ def run_pipeline(args: argparse.Namespace) -> dict:
         backface_mat = _build_backface_material()
         bpy.context.view_layer.material_override = backface_mat
         normals_png = os.path.join(args.out_dir, "tile_diag_normals.png")
-        sc.render.filepath = normals_png
-        bpy.ops.render.render(write_still=True)
+        _render_still(sc, normals_png)
         tiles["diag_normals"] = {
             "path": normals_png,
             "label": "FACE ORIENTATION (BLUE=OUT / RED=FLIPPED)",
@@ -766,7 +846,9 @@ def main() -> int:
     parser.add_argument("--out-dir", required=True, help="Output directory")
     parser.add_argument("--collection", default="", help="Target collection name")
     parser.add_argument("--objects", nargs="*", default=None, help="Target object names")
-    parser.add_argument("--profile", default="roblox", choices=["roblox", "game", "render", "print"])
+    parser.add_argument("--profile", default="roblox", choices=["auto", "roblox", "game", "render", "print"])
+    parser.add_argument("--max-tris", type=int, default=-1, help="BVH check tri threshold (-1 = auto from spec/300000, 0 = unlimited)")
+    parser.add_argument("--high-poly", action="store_true", help="Opt-in High-Poly Uncapped Mode (no 300k BVH cap / no 20k part cap)")
     parser.add_argument("--renderer", default="auto", choices=["auto", "cycles", "workbench"])
     parser.add_argument("--fast", action="store_true", help="Fast Workbench material render at 512x384")
     parser.add_argument("--res-x", type=int, default=640)

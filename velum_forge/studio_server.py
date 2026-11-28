@@ -18,7 +18,13 @@ from pathlib import Path
 from typing import Any
 
 from . import CAD_ENGINE_DIR, EXAMPLES_DIR, PLUGIN_SRC_DIR, REPO_ROOT, UI_DIR
-from .bake_guard import build_safe_blender_bake_cmd, build_safe_cycles_env, default_safe_threads, gpu_bake_lock
+from .bake_guard import (
+    build_safe_blender_bake_cmd,
+    build_safe_cycles_env,
+    default_safe_threads,
+    gpu_bake_lock,
+    windows_creationflags,
+)
 from .doctor import (
     find_blender_exe,
     find_venv_python,
@@ -213,11 +219,13 @@ def discover_assets() -> list[dict[str, Any]]:
                     return (0, item["label"])
                 if "ref vs model" in lo_l:
                     return (1, item["label"])
-                if "lineup" in lo_l:
+                if "streetview" in lo_l:
                     return (2, item["label"])
-                if "matched refcam" in lo_l:
+                if "lineup" in lo_l or "macro" in lo_l:
                     return (3, item["label"])
-                return (4, item["label"])
+                if "matched refcam" in lo_l:
+                    return (4, item["label"])
+                return (5, item["label"])
 
             images.sort(key=_img_rank)
 
@@ -226,24 +234,65 @@ def discover_assets() -> list[dict[str, Any]]:
             if tex_root.is_dir():
                 sub_tex = sorted([d for d in tex_root.iterdir() if d.is_dir()])
                 scan_t = sub_tex[0] if sub_tex else tex_root
+                meta_by_name: dict[str, tuple[str, str, str]] = {}
+                if report_data:
+                    for vname, vinfo in (report_data.get("variants") or {}).items():
+                        tex_tree = (vinfo or {}).get("textures") or {}
+                        for skey, val in tex_tree.items():
+                            if isinstance(val, dict):
+                                for mk, mp_str in val.items():
+                                    meta_by_name[Path(mp_str).name] = (vname, skey, mk)
+                            elif isinstance(val, str):
+                                meta_by_name[Path(val).name] = (vname, "", skey)
+                known_maps = ("Color", "Normal", "Roughness", "Metalness", "AO", "ORM")
+                primary_variant = next(iter((report_data or {}).get("variants") or {}), "")
+                raw_maps: list[dict[str, str]] = []
+                counts: dict[str, int] = {}
                 for mp in sorted(scan_t.glob("*.png")):
-                    pbr_maps.append({"label": mp.stem.split("_")[-1], "path": str(mp.resolve())})
+                    vname = ""
+                    if mp.name in meta_by_name:
+                        vname, skey, mk = meta_by_name[mp.name]
+                        base_lbl = f"{skey} · {mk}" if skey else mk
+                    else:
+                        parts = mp.stem.split("_")
+                        mk = parts[-1]
+                        skey = parts[-2] if (len(parts) >= 3 and parts[-1] in known_maps) else ""
+                        base_lbl = f"{skey} · {mk}" if skey else mk
+                    counts[base_lbl] = counts.get(base_lbl, 0) + 1
+                    raw_maps.append({"base": base_lbl, "vname": vname, "set": skey, "map": mk, "path": str(mp.resolve())})
+                for item in raw_maps:
+                    lbl = item["base"]
+                    if counts.get(lbl, 0) > 1 and item["vname"] and item["vname"] != primary_variant:
+                        lbl = f"{lbl} ({item['vname']})"
+                    elif counts.get(lbl, 0) > 1 and not item["vname"]:
+                        lbl = f"{lbl} ({Path(item['path']).stem})"
+                    pbr_maps.append({"label": lbl, "set": item["set"], "map": item["map"], "path": item["path"]})
 
             hero_img = next(
                 (
                     i["path"]
                     for i in images
-                    if any(k in i["label"].lower() for k in ("iteration progression", "ref vs model", "lineup"))
+                    if any(k in i["label"].lower() for k in ("iteration progression", "ref vs model", "streetview", "lineup"))
                 ),
                 images[0]["path"] if images else (ref_images[0]["path"] if ref_images else None),
             )
+
+            inferred_kind = spec_data.get("kind") or ("building" if any(k in sub.name for k in ("cafe", "building", "hotel", "restaurant", "street")) else "prop")
+            hp_on = bool(spec_data.get("high_poly_uncapped", False))
+            raw_mt = spec_data.get("qa_max_tris")
+            qa_max_tris = int(raw_mt) if raw_mt is not None else (0 if hp_on else 300000)
+            qa_profile = spec_data.get("qa_profile") or ("game" if (hp_on or inferred_kind in ("building", "arch") or len(pbr_maps) > 12) else "roblox")
 
             assets.append(
                 {
                     "id": f"{source_label}:{sub.name}",
                     "name": sub.name,
                     "title": spec_data.get("title") or sub.name.replace("_", " ").title(),
-                    "kind": spec_data.get("kind") or "prop",
+                    "kind": inferred_kind,
+                    "qa_profile": qa_profile,
+                    "high_poly_uncapped": hp_on,
+                    "qa_max_tris": qa_max_tris,
+                    "bake_res": int(spec_data.get("bake_res") or 2048),
                     "prompt": spec_data.get("prompt") or "",
                     "ortho_blueprint_grid": bool(spec_data.get("ortho_blueprint_grid", False)),
                     "extracted_palette": spec_data.get("extracted_palette") or [],
@@ -303,6 +352,7 @@ def _start_chained_job(
                         cmd,
                         cwd=cwd,
                         env=env_override,
+                        creationflags=windows_creationflags(),
                         stdout=subprocess.PIPE,
                         stderr=subprocess.STDOUT,
                         text=True,
@@ -341,6 +391,8 @@ def _build_qa_cmd(
     *,
     ortho_grid: bool = False,
     snapshot_iteration: bool = False,
+    max_tris: int = 300000,
+    high_poly: bool = False,
 ) -> list[str]:
     if platform.system() == "Windows":
         ps_exe = shutil.which("powershell") or "powershell.exe"
@@ -355,9 +407,13 @@ def _build_qa_cmd(
             asset_path,
             "-Profile",
             profile,
+            "-MaxTris",
+            str(max_tris),
             "-ForwardAxis",
             fwd,
         ]
+        if high_poly:
+            cmd.append("-HighPoly")
         if ortho_grid:
             cmd.append("-OrthoGrid")
         if snapshot_iteration:
@@ -365,7 +421,9 @@ def _build_qa_cmd(
         return cmd
 
     py = find_venv_python()
-    cmd = [py, "-m", "velum_forge.cli", "qa", asset_path, "--profile", profile, "--forward-axis", fwd]
+    cmd = [py, "-m", "velum_forge.cli", "qa", asset_path, "--profile", profile, "--max-tris", str(max_tris), "--forward-axis", fwd]
+    if high_poly:
+        cmd.append("--high-poly")
     if ortho_grid:
         cmd.append("--ortho-grid")
     if snapshot_iteration:
@@ -485,11 +543,22 @@ class StudioHandler(BaseHTTPRequestHandler):
             slug = slugify(raw_name)
             title = str(body.get("title") or raw_name.replace("_", " ").title()).strip()
             kind = str(body.get("kind") or "fish")
+            hp_on = bool(body.get("high_poly_uncapped", False))
+            raw_profile = str(body.get("profile") or "auto")
+            qa_profile = ("game" if (hp_on or kind in ("building", "arch")) else "roblox") if raw_profile == "auto" else raw_profile
+            bake_res = int(body.get("bake_res") or 2048)
             prompt = str(body.get("prompt") or title).strip()
             length_m = float(body.get("length_m") or 1.20)
             engine = str(body.get("engine") or "parametric")
             ortho_grid = bool(body.get("ortho_blueprint_grid", False))
-            review_loop = body.get("review_loop") if isinstance(body.get("review_loop"), dict) else None
+            review_loop = dict(body.get("review_loop")) if isinstance(body.get("review_loop"), dict) else None
+            rate_to_ten = body.get("rate_to_ten")
+            if rate_to_ten is True:
+                review_loop = review_loop or {}
+                if review_loop.get("enabled") is not False:
+                    review_loop["enabled"] = True
+                review_loop["strict_ten"] = True
+                review_loop["target_score"] = 10.0
             parent_dir = Path(str(body.get("parent_dir") or EXAMPLES_DIR)).resolve()
             asset_dir = parent_dir / slug
             asset_dir.mkdir(parents=True, exist_ok=True)
@@ -521,8 +590,12 @@ class StudioHandler(BaseHTTPRequestHandler):
                 prompt=prompt,
                 length_m=length_m,
                 references=staged_refs,
+                profile=qa_profile,
+                bake_res=bake_res,
                 ortho_blueprint_grid=ortho_grid,
                 review_loop=review_loop,
+                rate_to_ten=True if rate_to_ten is True else None,
+                high_poly_uncapped=hp_on,
             )
             handoff = build_agent_handoff_prompt(asset_dir)
 
@@ -560,10 +633,12 @@ class StudioHandler(BaseHTTPRequestHandler):
                         "10-View Visual & Multi-Ref QA Gate",
                         _build_qa_cmd(
                             build_script,
-                            "roblox",
+                            qa_profile,
                             "+Y",
                             ortho_grid=ortho_grid,
                             snapshot_iteration=iter_enabled,
+                            max_tris=(0 if hp_on else 300000),
+                            high_poly=hp_on,
                         ),
                         str(REPO_ROOT),
                     )
@@ -617,7 +692,9 @@ class StudioHandler(BaseHTTPRequestHandler):
                 max_iterations=body.get("max_iterations"),
                 require_zero_qa_errors=body.get("require_zero_qa_errors"),
                 require_zero_qa_warnings=body.get("require_zero_qa_warnings"),
+                strict_ten=body.get("strict_ten"),
                 focus_notes=body.get("focus_notes"),
+                high_poly_uncapped=body.get("high_poly_uncapped"),
             )
             self._send_json(
                 {
@@ -730,16 +807,27 @@ class StudioHandler(BaseHTTPRequestHandler):
 
         if route == "/api/run-qa":
             asset_path = str(body.get("path") or "")
-            profile = str(body.get("profile") or "roblox")
+            profile = str(body.get("profile") or "auto")
             fwd = str(body.get("forward_axis") or "+Y")
             ortho_grid = bool(body.get("ortho_grid", False))
             snap_iter = bool(body.get("snapshot_iteration", False))
+            high_poly = bool(body.get("high_poly", False))
+            raw_mt = body.get("max_tris")
+            max_tris = int(raw_mt) if raw_mt is not None else (0 if high_poly else 300000)
             jid = _start_chained_job(
                 f"10-View QA + Multi-Ref Comparison ({Path(asset_path).name})",
                 [
                     (
                         "Run 10-View QA",
-                        _build_qa_cmd(asset_path, profile, fwd, ortho_grid=ortho_grid, snapshot_iteration=snap_iter),
+                        _build_qa_cmd(
+                            asset_path,
+                            profile,
+                            fwd,
+                            ortho_grid=ortho_grid,
+                            snapshot_iteration=snap_iter,
+                            max_tris=max_tris,
+                            high_poly=high_poly,
+                        ),
                         str(REPO_ROOT),
                     )
                 ],

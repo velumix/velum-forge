@@ -1,0 +1,84 @@
+{
+  "ok": true,
+  "bake_res": 2048,
+  "lods": {
+    "LOD0": {
+      "tris": 52416,
+      "parts": 14,
+      "screen_size": 1.0,
+      "glb": "lods/cruiser_boat_7c_LOD0.glb"
+    },
+    "LOD1": {
+      "tris": 26310,
+      "parts": 14,
+      "screen_size": 0.5,
+      "glb": "lods/cruiser_boat_7c_LOD1.glb"
+    },
+    "LOD2": {
+      "tris": 14030,
+      "parts": 13,
+      "screen_size": 0.25,
+      "glb": "lods/cruiser_boat_7c_LOD2.glb"
+    },
+    "LOD3": {
+      "tris": 7316,
+      "parts": 11,
+      "screen_size": 0.1,
+      "glb": "lods/cruiser_boat_7c_LOD3.glb"
+    }
+  },
+  "variants": {
+    "reference_pearl": {
+      "label": "Cruiser Boat 7C \u2014 Flagship Reference Pearl (1:1 Ref)",
+      "dir": "variants/reference_pearl",
+      "glb": "variants/reference_pearl/cruiser_boat_7c_reference_pearl.glb",
+      "textures": {
+        "Color": "textures/reference_pearl/T_CruiserBoat7c_reference_pearl_Color.png",
+        "Normal": "textures/reference_pearl/T_CruiserBoat7c_reference_pearl_Normal.png",
+        "Roughness": "textures/reference_pearl/T_CruiserBoat7c_reference_pearl_Roughness.png",
+        "Metalness": "textures/reference_pearl/T_CruiserBoat7c_reference_pearl_Metalness.png",
+        "AO": "textures/reference_pearl/T_CruiserBoat7c_reference_pearl_AO.png",
+        "ORM": "textures/reference_pearl/T_CruiserBoat7c_reference_pearl_ORM.png"
+      }
+    },
+    "mediterranean_navy": {
+      "label": "Cruiser Boat 7C \u2014 Mediterranean Flagship Navy",
+      "dir": "variants/mediterranean_navy",
+      "glb": "variants/mediterranean_navy/cruiser_boat_7c_mediterranean_navy.glb",
+      "textures": {
+        "Color": "textures/mediterranean_navy/T_CruiserBoat7c_mediterranean_navy_Color.png",
+        "Normal": "textures/mediterranean_navy/T_CruiserBoat7c_mediterranean_navy_Normal.png",
+        "Roughness": "textures/mediterranean_navy/T_CruiserBoat7c_mediterranean_navy_Roughness.png",
+        "Metalness": "textures/mediterranean_navy/T_CruiserBoat7c_mediterranean_navy_Metalness.png",
+        "AO": "textures/mediterranean_navy/T_CruiserBoat7c_mediterranean_navy_AO.png",
+        "ORM": "textures/mediterranean_navy/T_CruiserBoat7c_mediterranean_navy_ORM.png"
+      }
+    },
+    "stealth_graphite": {
+      "label": "Cruiser Boat 7C \u2014 Stealth Anthracite & Crimson",
+      "dir": "variants/stealth_graphite",
+      "glb": "variants/stealth_graphite/cruiser_boat_7c_stealth_graphite.glb",
+      "textures": {
+        "Color": "textures/stealth_graphite/T_CruiserBoat7c_stealth_graphite_Color.png",
+        "Normal": "textures/stealth_graphite/T_CruiserBoat7c_stealth_graphite_Normal.png",
+        "Roughness": "textures/stealth_graphite/T_CruiserBoat7c_stealth_graphite_Roughness.png",
+        "Metalness": "textures/stealth_graphite/T_CruiserBoat7c_stealth_graphite_Metalness.png",
+        "AO": "textures/stealth_graphite/T_CruiserBoat7c_stealth_graphite_AO.png",
+        "ORM": "textures/stealth_graphite/T_CruiserBoat7c_stealth_graphite_ORM.png"
+      }
+    },
+    "monaco_champagne": {
+      "label": "Cruiser Boat 7C \u2014 Monaco Champagne-Bronze",
+      "dir": "variants/monaco_champagne",
+      "glb": "variants/monaco_champagne/cruiser_boat_7c_monaco_champagne.glb",
+      "textures": {
+        "Color": "textures/monaco_champagne/T_CruiserBoat7c_monaco_champagne_Color.png",
+        "Normal": "textures/monaco_champagne/T_CruiserBoat7c_monaco_champagne_Normal.png",
+        "Roughness": "textures/monaco_champagne/T_CruiserBoat7c_monaco_champagne_Roughness.png",
+        "Metalness": "textures/monaco_champagne/T_CruiserBoat7c_monaco_champagne_Metalness.png",
+        "AO": "textures/monaco_champagne/T_CruiserBoat7c_monaco_champagne_AO.png",
+        "ORM": "textures/monaco_champagne/T_CruiserBoat7c_monaco_champagne_ORM.png"
+      }
+    }
+  }
+}

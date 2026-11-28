@@ -1,4 +1,4 @@
-﻿"""Procedural mesh builders: lofts, sweeps, tubes, lathes, rounded prisms and primitives.
+"""Procedural mesh builders: lofts, sweeps, tubes, lathes, rounded prisms and primitives.
 
 All builders return a linked mesh object with mesh-level materials. Coordinates are meters.
 Profiles for sweeps are 2D (x = side, y = up) relative to the path frame.
@@ -397,4 +397,32 @@ def torus(name, major, minor, col, mats=None, center=(0, 0, 0), axis=(0, 0, 1), 
             for k in range(seg)]
     return sweep(name, path, circle2d(minor, rseg), col, mats, True, True, False, None,
                  m.to_3x3() @ Vector((0, 0, 1)), True, None, parent)
+
+
+# Re-export structured quad-flow & environment primitives from vflib.quadflow
+from .quadflow import (  # noqa: E402, F401
+    add_bougainvillea_cluster,
+    add_box,
+    add_box_bounds,
+    add_breeze_block,
+    add_closed_tube,
+    add_curved_leaf,
+    add_cylinder,
+    add_mitered_frame,
+    add_quad_grid_box,
+    add_quad_sphere,
+    add_revolved_profile,
+    add_revolved_ring,
+    add_spline_tube,
+    add_torus_ring,
+    add_uv_mapped_sign_plate,
+    deconflict_botanical_islands,
+    ensure_all_islands_outward,
+    finalize_mesh_data,
+    finalize_part,
+    ground_objects_safe,
+    import_cad_to_bmesh,
+    spawn_instance,
+    sub_collection,
+)
 

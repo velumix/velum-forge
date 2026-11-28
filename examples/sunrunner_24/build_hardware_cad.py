@@ -1,4 +1,4 @@
-﻿r"""Build precision B-Rep CAD marine hardware for the Sunrunner 24 offshore boat (v2 Realism Overhaul).
+r"""Build precision B-Rep CAD marine hardware for the Sunrunner 24 offshore boat (v2 Realism Overhaul).
 
 Generates 5 watertight, meter-scale `.step` + `.glb` assets under `assets/models/sunrunner_24/cad/`:
   1. deck_cleat        (220 mm Herreshoff/pull-up sculpted 316 stainless cleat, Z >= 0)

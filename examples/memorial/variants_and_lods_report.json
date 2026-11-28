@@ -1,0 +1,104 @@
+{
+  "ok": true,
+  "asset": "memorial",
+  "monument": "Pan Am Flight 103 Memorial Cairn (Arlington National Cemetery)",
+  "height_m": 18.0,
+  "bake_res": 2048,
+  "lods": {
+    "LOD0": {
+      "tris": 20108,
+      "parts": 2,
+      "screen_size": 1.0
+    },
+    "LOD1": {
+      "tris": 9650,
+      "parts": 2,
+      "screen_size": 0.5,
+      "glb": "lods/memorial_LOD1.glb"
+    },
+    "LOD2": {
+      "tris": 4824,
+      "parts": 2,
+      "screen_size": 0.25,
+      "glb": "lods/memorial_LOD2.glb"
+    },
+    "LOD3": {
+      "tris": 2210,
+      "parts": 2,
+      "screen_size": 0.1,
+      "glb": "lods/memorial_LOD3.glb"
+    }
+  },
+  "variants": {
+    "reference_match": {
+      "label": "Pan Am 103 Lockerbie Cairn \u2014 Corsehill Red Sandstone & Weathered Bronze (Arlington Reference)",
+      "edition": "Flagship",
+      "dir": "variants/reference_match",
+      "glb": "variants/reference_match/memorial_reference_match.glb",
+      "textures": {
+        "Color": "textures/reference_match/T_Memorial_reference_match_Color.png",
+        "Normal": "textures/reference_match/T_Memorial_reference_match_Normal.png",
+        "Roughness": "textures/reference_match/T_Memorial_reference_match_Roughness.png",
+        "Metalness": "textures/reference_match/T_Memorial_reference_match_Metalness.png",
+        "AO": "textures/reference_match/T_Memorial_reference_match_AO.png",
+        "ORM": "textures/reference_match/T_Memorial_reference_match_ORM.png"
+      }
+    },
+    "vermont_granite": {
+      "label": "Memorial Cairn \u2014 Barre Silver-Grey Granite & Verdigris Patinated Bronze",
+      "edition": "Civic",
+      "dir": "variants/vermont_granite",
+      "glb": "variants/vermont_granite/memorial_vermont_granite.glb",
+      "textures": {
+        "Color": "textures/vermont_granite/T_Memorial_vermont_granite_Color.png",
+        "Normal": "textures/vermont_granite/T_Memorial_vermont_granite_Normal.png",
+        "Roughness": "textures/vermont_granite/T_Memorial_vermont_granite_Roughness.png",
+        "Metalness": "textures/vermont_granite/T_Memorial_vermont_granite_Metalness.png",
+        "AO": "textures/vermont_granite/T_Memorial_vermont_granite_AO.png",
+        "ORM": "textures/vermont_granite/T_Memorial_vermont_granite_ORM.png"
+      }
+    },
+    "indiana_limestone": {
+      "label": "Memorial Cairn \u2014 Honey Indiana Limestone & Burnished Classical Bronze",
+      "edition": "Classical",
+      "dir": "variants/indiana_limestone",
+      "glb": "variants/indiana_limestone/memorial_indiana_limestone.glb",
+      "textures": {
+        "Color": "textures/indiana_limestone/T_Memorial_indiana_limestone_Color.png",
+        "Normal": "textures/indiana_limestone/T_Memorial_indiana_limestone_Normal.png",
+        "Roughness": "textures/indiana_limestone/T_Memorial_indiana_limestone_Roughness.png",
+        "Metalness": "textures/indiana_limestone/T_Memorial_indiana_limestone_Metalness.png",
+        "AO": "textures/indiana_limestone/T_Memorial_indiana_limestone_AO.png",
+        "ORM": "textures/indiana_limestone/T_Memorial_indiana_limestone_ORM.png"
+      }
+    },
+    "volcanic_basalt": {
+      "label": "Memorial Cairn \u2014 Columnar Charcoal Basalt & Aged Statuary Brass",
+      "edition": "Monolith",
+      "dir": "variants/volcanic_basalt",
+      "glb": "variants/volcanic_basalt/memorial_volcanic_basalt.glb",
+      "textures": {
+        "Color": "textures/volcanic_basalt/T_Memorial_volcanic_basalt_Color.png",
+        "Normal": "textures/volcanic_basalt/T_Memorial_volcanic_basalt_Normal.png",
+        "Roughness": "textures/volcanic_basalt/T_Memorial_volcanic_basalt_Roughness.png",
+        "Metalness": "textures/volcanic_basalt/T_Memorial_volcanic_basalt_Metalness.png",
+        "AO": "textures/volcanic_basalt/T_Memorial_volcanic_basalt_AO.png",
+        "ORM": "textures/volcanic_basalt/T_Memorial_volcanic_basalt_ORM.png"
+      }
+    }
+  },
+  "renders": {
+    "variant_reference_match": "renders/variant_reference_match.png",
+    "baked_closeup": "renders/baked_closeup.png",
+    "stone_detail_closeup": "renders/stone_detail_closeup.png",
+    "baked_top_closeup": "renders/baked_top_closeup.png",
+    "baked_bottom_closeup": "renders/baked_bottom_closeup.png",
+    "baked_ref_perspective": "renders/baked_ref_perspective.png",
+    "baked_photo_comparison": "renders/baked_photo_comparison.png",
+    "variant_vermont_granite": "renders/variant_vermont_granite.png",
+    "variant_indiana_limestone": "renders/variant_indiana_limestone.png",
+    "variant_volcanic_basalt": "renders/variant_volcanic_basalt.png",
+    "variants_lineup": "renders/variants_lineup.png",
+    "lod_sheet": "renders/lod_comparison_sheet.png"
+  }
+}

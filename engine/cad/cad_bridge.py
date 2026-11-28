@@ -1,4 +1,4 @@
-﻿"""Precision B-Rep CAD (build123d) <-> Mesh/QA/Decimation bridge for Velum Forge.
+"""Precision B-Rep CAD (build123d) <-> Mesh/QA/Decimation bridge for Velum Forge.
 
 Provides importable helpers (`export_cad_part`, `export_cad_assembly`, `inspect_mesh_file`)
 and CLI subcommands (`inspect`, `step-to-glb`, `decimate`, `repair`).

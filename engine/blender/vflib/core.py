@@ -1,4 +1,4 @@
-﻿"""Scene, collection, naming and metadata helpers shared by every Sun City asset.
+"""Scene, collection, naming and metadata helpers shared by every Sun City asset.
 
 Conventions (see tools/blender/README.md):
 - Model in real-world meters. +Y = forward (bow / front), +X = right (starboard), +Z = up.
@@ -106,6 +106,13 @@ def set_collection_visible(col, visible=True):
     if lc:
         lc.exclude = False
         lc.hide_viewport = not visible
+
+
+def set_collection_tree_visible(col, visible=True):
+    """Recursively show or hide `col` and all descendant child collections."""
+    set_collection_visible(col, visible=visible)
+    for child in col.children:
+        set_collection_tree_visible(child, visible=visible)
 
 
 def _find_layer_collection(lc, name):

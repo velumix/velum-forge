@@ -1,4 +1,4 @@
-﻿"""Velum Forge â€” Trophy Mahi-Mahi (`Coryphaena hippurus`) 2K Cycles PBR Bake, 4 Variants, 4-Tier LODs & Swim Rig.
+"""Velum Forge â€” Trophy Mahi-Mahi (`Coryphaena hippurus`) 2K Cycles PBR Bake, 4 Variants, 4-Tier LODs & Swim Rig.
 
 End-to-end production pipeline matching & extending `Sunrunner 24`:
   1. Builds parametric anatomical Mahi-Mahi (`build_mahi_mahi.py`) with real sexual dimorphism:
@@ -529,11 +529,15 @@ def _enable_cycles_gpu(sc: bpy.types.Scene) -> str:
     except Exception:
         pass
     sc.render.engine = "CYCLES"
+    env_t = os.environ.get("VELUM_BLENDER_THREADS", "").strip()
+    safe_threads = int(env_t) if env_t.isdigit() and int(env_t) > 0 else min(8, max(2, (os.cpu_count() or 8) // 2))
+    env_ts = os.environ.get("VELUM_CYCLES_TILE_SIZE", "").strip()
+    safe_tile = int(env_ts) if env_ts.isdigit() and int(env_ts) >= 64 else 512
     try:
         sc.render.threads_mode = "FIXED"
-        sc.render.threads = min(8, max(2, (os.cpu_count() or 8) // 2))
+        sc.render.threads = safe_threads
         sc.cycles.use_auto_tile = True
-        sc.cycles.tile_size = 512
+        sc.cycles.tile_size = safe_tile
     except Exception:
         pass
     backend = "CPU"
@@ -554,7 +558,12 @@ def _enable_cycles_gpu(sc: bpy.types.Scene) -> str:
                 continue
     except Exception:
         pass
+    sc.cycles.use_denoising = True
     if backend == "OPTIX":
+        try:
+            sc.cycles.denoising_use_gpu = True
+        except Exception:
+            pass
         try:
             sc.cycles.denoiser = "OPTIX"
         except Exception:
@@ -584,8 +593,43 @@ def _read_float_img(img: bpy.types.Image) -> np.ndarray:
     return buf.reshape((h, w, 4))
 
 
+def _atomic_copy_fallback(src_path: str, dst_path: str, retries: int = 6) -> None:
+    abs_dst = os.path.abspath(dst_path)
+    dst_dir = os.path.dirname(abs_dst)
+    os.makedirs(dst_dir, exist_ok=True)
+    staged = os.path.join(dst_dir, f".__vf_stage_{os.getpid()}_{os.path.basename(abs_dst)}")
+    try:
+        shutil.copy2(src_path, staged)
+        try:
+            with open(staged, "rb+") as fh:
+                fh.flush()
+                os.fsync(fh.fileno())
+        except OSError:
+            pass
+        for attempt in range(retries):
+            try:
+                os.replace(staged, abs_dst)
+                return
+            except PermissionError:
+                if attempt == retries - 1:
+                    raise
+                time.sleep(0.4)
+    finally:
+        if os.path.exists(staged):
+            try:
+                os.remove(staged)
+            except OSError:
+                pass
+
+
 def _save_png_8bit(rgba: np.ndarray, path: str, colorspace: str) -> bpy.types.Image:
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    try:
+        from vflib import bake as _vf_bake
+
+        return _vf_bake.save_png_8bit(rgba, path, colorspace)
+    except Exception:
+        pass
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     h, w, _ = rgba.shape
     iname = os.path.basename(path)
     old = bpy.data.images.get(iname)
@@ -594,22 +638,17 @@ def _save_png_8bit(rgba: np.ndarray, path: str, colorspace: str) -> bpy.types.Im
     img = bpy.data.images.new(iname, width=w, height=h, alpha=False, float_buffer=False)
     img.colorspace_settings.name = colorspace
     img.pixels.foreach_set(np.clip(rgba, 0.0, 1.0).astype(np.float32).ravel())
-    tmp_p = os.path.join(tempfile.gettempdir(), f"__sc_tex_{iname}")
+    tmp_p = os.path.join(tempfile.gettempdir(), f"__sc_tex_{os.getpid()}_{iname}")
     img.filepath_raw = tmp_p
     img.file_format = "PNG"
     img.save()
-    for attempt in range(6):
-        try:
-            shutil.copy2(tmp_p, path)
-            break
-        except PermissionError:
-            if attempt == 5:
-                raise
-            time.sleep(0.35)
     try:
-        os.remove(tmp_p)
-    except OSError:
-        pass
+        _atomic_copy_fallback(tmp_p, path, retries=6)
+    finally:
+        try:
+            os.remove(tmp_p)
+        except OSError:
+            pass
     img.filepath = path
     img.reload()
     img.colorspace_settings.name = colorspace
@@ -1146,22 +1185,17 @@ def _render_still_safe(sc: bpy.types.Scene, dst_path: str) -> str:
         return _vf_bake.render_still_safe(sc, dst_path)
     except Exception:
         pass
-    os.makedirs(os.path.dirname(dst_path), exist_ok=True)
-    tmp_p = os.path.join(tempfile.gettempdir(), f"__sc_mm_{os.path.basename(dst_path)}")
+    os.makedirs(os.path.dirname(os.path.abspath(dst_path)), exist_ok=True)
+    tmp_p = os.path.join(tempfile.gettempdir(), f"__sc_mm_{os.getpid()}_{os.path.basename(dst_path)}")
     sc.render.filepath = tmp_p
     bpy.ops.render.render(write_still=True)
-    for attempt in range(6):
-        try:
-            shutil.copy2(tmp_p, dst_path)
-            break
-        except PermissionError:
-            if attempt == 5:
-                raise
-            time.sleep(0.4)
     try:
-        os.remove(tmp_p)
-    except OSError:
-        pass
+        _atomic_copy_fallback(tmp_p, dst_path, retries=6)
+    finally:
+        try:
+            os.remove(tmp_p)
+        except OSError:
+            pass
     time.sleep(float(os.environ.get("VELUM_BAKE_COOLDOWN", "1.0") or "1.0"))
     return dst_path
 

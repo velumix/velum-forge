@@ -1,4 +1,4 @@
-﻿r"""Starter Velum Forge precision B-Rep CAD part: 250 mm Marine Stainless Deck Cleat.
+r"""Starter Velum Forge precision B-Rep CAD part: 250 mm Marine Stainless Deck Cleat.
 
 Demonstrates exact engineering dimensions in meters, parametric fillets/chamfers,
 countersunk mounting holes, Z=0 ground alignment, X/Y symmetry, and dual STEP + GLB export.

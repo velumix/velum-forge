@@ -41,10 +41,11 @@ RUBRIC_LABELS: dict[str, str] = {
 
 DEFAULT_REVIEW_CONFIG: dict[str, Any] = {
     "enabled": False,
-    "target_score": 9.0,
-    "max_iterations": 3,
+    "target_score": 10.0,
+    "max_iterations": 0,
     "require_zero_qa_errors": True,
     "require_zero_qa_warnings": True,
+    "strict_ten": True,
     "focus_notes": "",
     "rubric_weights": dict(DEFAULT_RUBRIC_WEIGHTS),
 }
@@ -82,15 +83,13 @@ def _write_json(path: Path, payload: dict[str, Any]) -> None:
 
 
 def normalize_review_config(raw: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Return a clean, validated review loop configuration dict."""
+    """Return a clean, validated review loop configuration dict (rating target locked at 10.0/10)."""
     cfg = copy.deepcopy(DEFAULT_REVIEW_CONFIG)
     if isinstance(raw, dict):
         if "enabled" in raw:
             cfg["enabled"] = bool(raw["enabled"])
-        if "target_score" in raw and raw["target_score"] is not None:
-            cfg["target_score"] = round(max(1.0, min(10.0, float(raw["target_score"]))), 1)
         if "max_iterations" in raw and raw["max_iterations"] is not None:
-            cfg["max_iterations"] = max(1, min(10, int(raw["max_iterations"])))
+            cfg["max_iterations"] = max(0, min(50, int(raw["max_iterations"])))
         if "require_zero_qa_errors" in raw:
             cfg["require_zero_qa_errors"] = bool(raw["require_zero_qa_errors"])
         if "require_zero_qa_warnings" in raw:
@@ -107,6 +106,9 @@ def normalize_review_config(raw: dict[str, Any] | None = None) -> dict[str, Any]
             total_w = sum(weights.values())
             if total_w > 0:
                 cfg["rubric_weights"] = {k: round(v / total_w, 4) for k, v in weights.items()}
+    # Strict Always-10/10 rule: never approve or settle for any score below 10.0 / 10
+    cfg["target_score"] = 10.0
+    cfg["strict_ten"] = True
     return cfg
 
 
@@ -125,9 +127,11 @@ def set_review_config(
     max_iterations: int | None = None,
     require_zero_qa_errors: bool | None = None,
     require_zero_qa_warnings: bool | None = None,
+    strict_ten: bool | None = None,
     focus_notes: str | None = None,
+    high_poly_uncapped: bool | None = None,
 ) -> dict[str, Any]:
-    """Update and persist `review_loop` settings inside `<asset_dir>/asset_spec.json`."""
+    """Update and persist `review_loop` (locked 10.0/10 target) & optional `high_poly_uncapped` in `asset_spec.json`."""
     ad = Path(asset_dir).resolve()
     ad.mkdir(parents=True, exist_ok=True)
     spec_path = ad / "asset_spec.json"
@@ -142,6 +146,8 @@ def set_review_config(
             "prompt": slug.replace("_", " ").title(),
             "target_length_m": 1.2,
             "qa_profile": "roblox",
+            "high_poly_uncapped": False,
+            "qa_max_tris": 300000,
             "ortho_blueprint_grid": False,
             "references": [],
         }
@@ -149,10 +155,10 @@ def set_review_config(
     cfg = normalize_review_config(spec.get("review_loop"))
     if enabled is not None:
         cfg["enabled"] = bool(enabled)
-    if target_score is not None:
-        cfg["target_score"] = round(max(1.0, min(10.0, float(target_score))), 1)
+    elif strict_ten is True:
+        cfg["enabled"] = True
     if max_iterations is not None:
-        cfg["max_iterations"] = max(1, min(10, int(max_iterations)))
+        cfg["max_iterations"] = max(0, min(50, int(max_iterations)))
     if require_zero_qa_errors is not None:
         cfg["require_zero_qa_errors"] = bool(require_zero_qa_errors)
     if require_zero_qa_warnings is not None:
@@ -160,7 +166,34 @@ def set_review_config(
     if focus_notes is not None:
         cfg["focus_notes"] = str(focus_notes).strip()
 
+    # Always keep target locked at 10.0 / 10 regardless of caller override
+    cfg["target_score"] = 10.0
+    cfg["strict_ten"] = True
+
+    if high_poly_uncapped is not None:
+        hp = bool(high_poly_uncapped)
+        spec["high_poly_uncapped"] = hp
+        spec["qa_max_tris"] = 0 if hp else 300000
+        if hp:
+            spec["qa_profile"] = "game"
+        elif spec.get("kind") not in ("building", "arch") and spec.get("qa_profile") == "game":
+            spec["qa_profile"] = "roblox"
+        slug = spec.get("slug") or ad.name
+        qa_prof = spec.get("qa_profile", "game" if hp else "roblox")
+        qa_cmd = f'vforge qa "{ad / f"build_{slug}.py"}" --profile {qa_prof}'
+        if hp:
+            qa_cmd += " --high-poly --max-tris 0"
+        elif qa_prof == "game":
+            qa_cmd += " --max-tris 300000"
+        qa_cmd += " --forward-axis +Y"
+        if cfg["enabled"]:
+            qa_cmd += " --snapshot-iteration"
+        wf = dict(spec.get("workflow_commands") or {})
+        wf["qa"] = qa_cmd
+        spec["workflow_commands"] = wf
+
     spec["review_loop"] = cfg
+    spec["rate_to_ten"] = bool(cfg["enabled"])
     _write_json(spec_path, spec)
     return cfg
 
@@ -366,7 +399,7 @@ def parse_defect_spec(raw: str | dict[str, Any]) -> dict[str, str]:
     return {"category": cat or "General", "severity": sev, "description": desc, "fix_action": fix}
 
 
-def format_iteration_markdown(entry: dict[str, Any], target_score: float = 9.0) -> str:
+def format_iteration_markdown(entry: dict[str, Any], target_score: float = 10.0) -> str:
     """Format an iteration review in crisp, honest, scannable markdown."""
     it_num = entry.get("iteration", 1)
     rating = float(entry.get("honest_rating", 0.0))
@@ -466,7 +499,7 @@ def compose_iteration_progression_sheet(asset_dir: str | Path) -> str | None:
         return None
 
     cfg = hist.get("config") or DEFAULT_REVIEW_CONFIG
-    target = float(cfg.get("target_score", 9.0))
+    target = 10.0
     title = hist.get("asset_title") or ad.name
 
     shown = iters[-4:]  # Show up to 4 most recent iterations cleanly side-by-side
@@ -499,7 +532,7 @@ def compose_iteration_progression_sheet(asset_dir: str | Path) -> str | None:
     scores_trail = "  ->  ".join(f"Iter {it['iteration']}: {float(it['honest_rating']):.1f}/10" for it in iters)
     draw.text(
         (pad, 47),
-        f"Target: {target:.1f} / 10   |   Status: {hist.get('status', 'IN_PROGRESS')}   |   Trajectory: {scores_trail}",
+        f"Target: {target:.1f} / 10 (Strict)   |   Status: {hist.get('status', 'IN_PROGRESS')}   |   Trajectory: {scores_trail}",
         fill=_MUTED,
         font=f_sub,
     )
@@ -631,16 +664,23 @@ def record_iteration_review(
     else:
         raw_rating = qa_snap["qa_score"]
 
-    # Apply objective QA gate cap so broken geometry can never claim a passing 9+/10 rating
+    parsed_defects = [parse_defect_spec(d) for d in (defects or []) if d]
+    clean_strengths = [str(s).strip() for s in (strengths or []) if str(s).strip()]
+
+    # Apply objective QA gate cap + unresolved-defect cap so broken or flawed builds never claim 10/10
     final_rating = min(raw_rating, qa_snap["rating_cap"])
     cap_reason = qa_snap["cap_reason"] if final_rating < raw_rating else ""
+    if parsed_defects and final_rating >= 10.0:
+        final_rating = 9.5
+        d_msg = "Capped at 9.5/10 because unresolved defect(s) remain — fix all defects before approving 10.0/10."
+        cap_reason = f"{cap_reason} {d_msg}".strip()
 
     prev_entries = [x for x in existing if int(x.get("iteration", 0)) < it_num]
     prev_rating = float(prev_entries[-1]["honest_rating"]) if prev_entries else None
     delta = round(final_rating - prev_rating, 1) if prev_rating is not None else None
 
-    target = float(cfg.get("target_score", 9.0))
-    max_iters = int(cfg.get("max_iterations", 3))
+    target = 10.0
+    max_iters = int(cfg.get("max_iterations", 0))
     qa_ok = (
         (not qa_snap["available"])
         or (
@@ -649,15 +689,10 @@ def record_iteration_review(
         )
     )
 
-    if final_rating >= target and qa_ok:
+    if final_rating >= 10.0 and qa_ok and len(parsed_defects) == 0:
         verdict = "APPROVED"
-    elif it_num >= max_iters:
-        verdict = "MAX_ITERATIONS_REACHED"
     else:
         verdict = "ITERATE"
-
-    parsed_defects = [parse_defect_spec(d) for d in (defects or []) if d]
-    clean_strengths = [str(s).strip() for s in (strengths or []) if str(s).strip()]
 
     entry: dict[str, Any] = {
         "iteration": it_num,
@@ -697,11 +732,12 @@ def record_iteration_review(
     _write_json(reviews_dir / "review_history.json", hist)
 
     # Write combined human-readable REVIEW_LOG.md
+    max_iter_label = "Unlimited until 10.0 / 10" if max_iters <= 0 else str(max_iters)
     md_header = [
         f"# Velum Forge Iterative Review Log — {hist.get('asset_title', ad.name)}",
         "",
         f"- **Iterative Mode Enabled:** `{cfg['enabled']}`",
-        f"- **Target Honest Rating:** `{target:.1f} / 10` (Max Iterations: `{max_iters}`)",
+        f"- **Target Honest Rating:** `{target:.1f} / 10` (Strict — Never Proceed Below 10.0 | Cap: `{max_iter_label}`)",
         f"- **Current Status:** `{hist['status']}` | **Latest Rating:** `{hist['latest_rating']:.1f} / 10` | **Best:** `{hist['best_rating']:.1f} / 10`",
         "",
         "---",
@@ -728,8 +764,27 @@ def build_next_iteration_prompt(asset_dir: str | Path) -> str:
     iters = hist.get("iterations") or []
     title = spec.get("title") or ad.name.replace("_", " ").title()
     slug = spec.get("slug") or ad.name
-    target = float(cfg.get("target_score", 9.0))
-    max_iters = int(cfg.get("max_iterations", 3))
+    target = 10.0
+    hp_on = bool(spec.get("high_poly_uncapped", False))
+    qa_profile = "game" if hp_on else str(spec.get("qa_profile", "roblox"))
+    qa_flags = f"--profile {qa_profile}"
+    if hp_on:
+        qa_flags += " --high-poly --max-tris 0"
+    elif qa_profile == "game":
+        qa_flags += " --max-tris 300000"
+    qa_flags += " --forward-axis +Y --snapshot-iteration"
+
+    strict_rule = (
+        "\n- **Strict Always-10/10 Rule:** Rate yourself honestly from `0` to `10` until the outcome genuinely becomes a `10 out of 10`. "
+        "It should look brilliant. Do not rush, do not fake or inflate the rating, and NEVER stop, approve, or proceed to Stage 5 baking "
+        "on any rating below `10.0 / 10` (e.g., `9.0`, `9.5`, or `9.6` must keep iterating!).\n"
+    )
+    hp_critic_note = (
+        "- **High-Poly Uncapped Critic Floor:** NEVER slash radial segments or botanical density to chase a tri limit (`--max-tris 0` is uncapped). "
+        "Faceted low-segment cylinders (`<= 10` segs on hero props), sparse stick-like palms, or un-beveled boxy trim are `[MAJOR]` defects blocking `10.0 / 10`.\n"
+        if hp_on
+        else ""
+    )
 
     if not iters:
         next_it = 1
@@ -740,7 +795,7 @@ def build_next_iteration_prompt(asset_dir: str | Path) -> str:
             f"3. Give an **honest 0.0-10.0 rating** (no grade inflation — call out primitive blobs, missing trim, clipping, signage issues, or flat materials explicitly).\n"
             f"4. Log the review with:\n"
             f"   `vforge review log \"{ad}\" --score <X.X> --summary \"...\" --strength \"...\" --defect \"Category|major|Defect description|Exact fix\"`\n"
-            f"5. Fix every critical/major defect and iterate up to `{max_iters}` iterations until **Honest Rating >= {target:.1f} / 10** and **QA = PASS (0 Errors, 0 Warnings)**."
+            f"5. Fix every defect and keep iterating until **Honest Rating == 10.0 / 10** and **QA = PASS (0 Errors, 0 Warnings)**.{strict_rule}{hp_critic_note}"
         )
 
     last = iters[-1]
@@ -750,7 +805,7 @@ def build_next_iteration_prompt(asset_dir: str | Path) -> str:
         f"  {i}. **[{d['severity'].upper()}] {d['category']}**: {d['description']}"
         + (f" — *Fix:* {d['fix_action']}" if d["fix_action"] else "")
         for i, d in enumerate(defects, 1)
-    ) or "  - (No visual defects listed — focus on pushing craft & material realism above target score.)"
+    ) or "  - (Push silhouette, micro-bevels, interior craft, botanical density & PBR realism to true 10.0 / 10.)"
 
     qa_snap = last.get("qa_snapshot") or {}
     qa_lines = ""
@@ -764,15 +819,15 @@ def build_next_iteration_prompt(asset_dir: str | Path) -> str:
     return (
         f"Execute **Iteration {next_it} Refinement** for Velum Forge asset **{title}** (`{slug}` in `{ad}`):\n\n"
         f"- **Previous Honest Rating:** `{float(last['honest_rating']):.1f} / 10` (Iteration {last['iteration']})\n"
-        f"- **Target Honest Rating:** `{target:.1f} / 10` (Max Iterations: `{max_iters}`)\n"
+        f"- **Target Honest Rating:** `{target:.1f} / 10` (Strict — Do Not Proceed Below `10.0 / 10`)\n"
         f"- **Archived Previous Renders:** `{last.get('snapshot_dir', ad / 'reviews')}`\n"
-        f"{focus}\n"
+        f"{focus}{strict_rule}{hp_critic_note}\n"
         f"**Mandatory Defects to Fix in Iteration {next_it}:**\n{defect_lines}\n"
         f"{qa_lines}\n"
         f"**Verification & Logging Steps After Rebuilding:**\n"
-        f"1. Re-run `vforge qa \"{ad / f'build_{slug}.py'}\" --profile {spec.get('qa_profile', 'roblox')} --forward-axis +Y --snapshot-iteration`.\n"
+        f"1. Re-run `vforge qa \"{ad / f'build_{slug}.py'}\" {qa_flags}`.\n"
         f"2. Visually inspect all updated renders + `renders/ref_comparison.png` against every reference photo.\n"
         f"3. Write an honest Iteration {next_it} Review (stating score delta vs `{float(last['honest_rating']):.1f}/10`, what improved, and any remaining defects) and log it via:\n"
         f"   `vforge review log \"{ad}\" --score <X.X> --summary \"...\" --strength \"...\" --defect \"Category|severity|Description|Fix\"`\n"
-        f"4. Stop once **Honest Rating >= {target:.1f} / 10** and **QA PASS (0 Errors, 0 Warnings)**, then proceed to 2K Cycles PBR Bake & LODs."
+        f"4. NEVER proceed to Stage 5 baking below `10.0 / 10` — keep iterating until **Honest Rating == 10.0 / 10**, `0` unresolved defects, and **QA PASS (0 Errors, 0 Warnings)**."
     )

@@ -234,8 +234,15 @@ def load_references(
     grid_step = 1.0 if target_len >= 4.0 else (0.25 if target_len >= 1.0 else 0.05)
 
     for idx, item in enumerate(refs[:8]):
-        img_p = item.get("path") or ""
-        if not os.path.isfile(img_p):
+        raw_p = str(item.get("path") or item.get("filename") or "")
+        img_p = raw_p
+        if img_p and not os.path.isabs(img_p):
+            img_p = os.path.join(asset_dir, img_p)
+        if not img_p or not os.path.isfile(img_p):
+            cand = os.path.join(asset_dir, "references", os.path.basename(raw_p))
+            if raw_p and os.path.isfile(cand):
+                img_p = cand
+        if not img_p or not os.path.isfile(img_p):
             continue
 
         proj = _infer_projection(item)

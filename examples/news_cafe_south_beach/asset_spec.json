@@ -1,0 +1,106 @@
+{
+  "schema": "velum-forge/asset-spec/v2",
+  "slug": "news_cafe_south_beach",
+  "title": "News Cafe 800 Ocean Dr & South Beach Corner",
+  "kind": "building",
+  "prompt": "Iconic 3-story Art Deco / MiMo News Cafe building at 800 Ocean Dr & 8th St, Miami Beach, FL with pierced white breeze-block balconies, emerald green scalloped awnings, bougainvillea, outdoor bistro patio, adjacent 804 Ocean Dr olive-green building and 820 Ocean Dr blue-trim facade, pink corner sidewalk, palms, tropical shade trees, yellow curbs, and Ocean Dr / 8th St green bike lanes.",
+  "target_length_m": 42.0,
+  "qa_profile": "game",
+  "bake_res": 2048,
+  "variants_count": 4,
+  "extracted_palette": [
+    "#555545",
+    "#95ABCA",
+    "#668CB1",
+    "#252B26",
+    "#9F9786",
+    "#504C3C"
+  ],
+  "references": [
+    {
+      "filename": "ref_hero_se_corner.jpg",
+      "path": "references/ref_hero_se_corner.jpg",
+      "view": "hero",
+      "width_px": 1024,
+      "height_px": 505,
+      "subject_aspect_w_over_h": 2.028,
+      "dominant_palette": [
+        "#555545",
+        "#95ABCA",
+        "#668CB1",
+        "#252B26",
+        "#9F9786"
+      ],
+      "projection": "perspective"
+    },
+    {
+      "filename": "ref_front_ocean_dr.jpg",
+      "path": "references/ref_front_ocean_dr.jpg",
+      "view": "front",
+      "width_px": 1024,
+      "height_px": 514,
+      "subject_aspect_w_over_h": 1.996,
+      "dominant_palette": [
+        "#504C3C",
+        "#948975",
+        "#1B1F1B",
+        "#97A7B6",
+        "#797E6D"
+      ],
+      "projection": "perspective"
+    },
+    {
+      "filename": "ref_ne_34_block.jpg",
+      "path": "references/ref_ne_34_block.jpg",
+      "view": "hero",
+      "width_px": 1024,
+      "height_px": 504,
+      "subject_aspect_w_over_h": 2.032,
+      "dominant_palette": [
+        "#141B1D",
+        "#706857",
+        "#32332B",
+        "#434E42",
+        "#99A8BE"
+      ],
+      "projection": "perspective"
+    },
+    {
+      "filename": "ref_ocean_dr_streetscape.jpg",
+      "path": "references/ref_ocean_dr_streetscape.jpg",
+      "view": "hero",
+      "width_px": 1024,
+      "height_px": 504,
+      "subject_aspect_w_over_h": 2.032,
+      "dominant_palette": [
+        "#799BC7",
+        "#686652",
+        "#2C3537",
+        "#DDD0C1",
+        "#DEC5AA"
+      ],
+      "projection": "perspective"
+    },
+    {
+      "filename": "ref_side_8th_st.jpg",
+      "path": "references/ref_side_8th_st.jpg",
+      "view": "side",
+      "width_px": 1024,
+      "height_px": 504,
+      "subject_aspect_w_over_h": 2.032,
+      "dominant_palette": [
+        "#161C1B",
+        "#897E6F",
+        "#443C2F",
+        "#2D2C25",
+        "#9EA3A7"
+      ],
+      "projection": "perspective"
+    }
+  ],
+  "workflow_commands": {
+    "qa": "vforge qa \"examples/news_cafe_south_beach/build_news_cafe_south_beach.py\" --profile game --forward-axis +Y --max-tris 300000",
+    "bake": "vforge bake \"examples/news_cafe_south_beach/bake_lod_variants.py\""
+  },
+  "ortho_blueprint_grid": false
+}

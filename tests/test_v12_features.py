@@ -21,7 +21,7 @@ from PIL import Image, ImageDraw
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from velum_forge import bake_guard, cli, generator, references, review, studio_server  # noqa: E402
+from velum_forge import bake_guard, cli, doctor, generator, references, review, scaffold, studio_server  # noqa: E402
 
 
 def _make_sample_png(path: Path, color: tuple[int, int, int], label: str, size=(640, 480)) -> Path:
@@ -60,14 +60,17 @@ class TestVelumForgeV12(unittest.TestCase):
             _make_sample_png(renders / "ref_comparison.png", (36, 72, 110), "Iter 1 Render")
             _make_sample_png(renders / "qa_contact_material.png", (42, 60, 88), "QA Material")
 
-            # Default is OFF (optional!)
+            # Default is OFF (optional!), but target is always strictly locked at 10.0/10
             cfg0 = review.get_review_config(ad)
             self.assertFalse(cfg0["enabled"])
+            self.assertEqual(cfg0["target_score"], 10.0)
+            self.assertTrue(cfg0["strict_ten"])
 
-            # Enable via set_review_config
+            # Even if caller passes target_score=9.0, review loop locks target_score=10.0
             cfg1 = review.set_review_config(ad, enabled=True, target_score=9.0, max_iterations=3, focus_notes="Botanicals & glazing")
             self.assertTrue(cfg1["enabled"])
-            self.assertEqual(cfg1["target_score"], 9.0)
+            self.assertEqual(cfg1["target_score"], 10.0)
+            self.assertTrue(cfg1["strict_ten"])
 
             # QA report WITH errors must cap an inflated score at 7.9/10!
             (renders / "qa_report.json").write_text(
@@ -120,14 +123,15 @@ class TestVelumForgeV12(unittest.TestCase):
             self.assertEqual(it2["delta_from_previous"], 1.7)
             self.assertEqual(it2["verdict"], "ITERATE")
 
-            # Next-iteration prompt includes unresolved defect & previous score
+            # Next-iteration prompt includes unresolved defect, previous score & always-10/10 rule
             nxt = review.build_next_iteration_prompt(ad)
             self.assertIn("Iteration 3 Refinement", nxt)
             self.assertIn("7.9 / 10", nxt)
             self.assertIn("Floating breeze blocks", nxt)
+            self.assertIn("10.0 / 10", nxt)
 
-            # Iteration 3: QA clean (0E/0W) + 9.3/10 -> APPROVED!
-            _make_sample_png(renders / "ref_comparison.png", (28, 130, 88), "Iter 3 Final Render")
+            # Iteration 3: QA clean (0E/0W) + 9.3/10 must STILL iterate (never approve below 10.0/10!)
+            _make_sample_png(renders / "ref_comparison.png", (28, 120, 96), "Iter 3 Render")
             (renders / "qa_report.json").write_text(
                 json.dumps({"pass": True, "total_tris": 54100, "errors": [], "warnings": []}),
                 encoding="utf-8",
@@ -135,12 +139,35 @@ class TestVelumForgeV12(unittest.TestCase):
             it3 = review.record_iteration_review(
                 ad,
                 honest_rating=9.3,
-                summary="All Street View angles match closely with organic tropical canopy and clean 0E/0W QA.",
+                summary="Strong 9.3 pass, one minor awning polish item still short of 10/10.",
+                strengths=["Organic shade tree canopy", "Zero QA errors or warnings"],
+                defects=["Signage|minor|Awning lettering slightly small|Scale News Cafe typography"],
+            )
+            self.assertEqual(it3["honest_rating"], 9.3)
+            self.assertEqual(it3["verdict"], "ITERATE")
+
+            # Iteration 4: Claiming 10.0/10 while defects remain is capped at 9.5 & stays ITERATE
+            it4 = review.record_iteration_review(
+                ad,
+                honest_rating=10.0,
+                summary="Trying to rush 10/10 with defect still listed.",
+                strengths=["Great framing"],
+                defects=["Trim|minor|Missing drip cap|Add bevel trim"],
+            )
+            self.assertEqual(it4["honest_rating"], 9.5)
+            self.assertEqual(it4["verdict"], "ITERATE")
+
+            # Iteration 5: QA clean (0E/0W) + 0 defects + 10.0/10 -> APPROVED!
+            _make_sample_png(renders / "ref_comparison.png", (28, 130, 88), "Iter 5 Final Render")
+            it5 = review.record_iteration_review(
+                ad,
+                honest_rating=10.0,
+                summary="All Street View angles match 10/10 with organic tropical canopy and clean 0E/0W QA.",
                 strengths=["Organic shade tree canopy", "Zero QA errors or warnings"],
                 defects=[],
             )
-            self.assertEqual(it3["honest_rating"], 9.3)
-            self.assertEqual(it3["verdict"], "APPROVED")
+            self.assertEqual(it5["honest_rating"], 10.0)
+            self.assertEqual(it5["verdict"], "APPROVED")
             self.assertTrue((ad / "reviews" / "REVIEW_LOG.md").is_file())
             self.assertTrue((ad / "reviews" / "iteration_progression.png").is_file())
 
@@ -230,10 +257,16 @@ class TestVelumForgeV12(unittest.TestCase):
                     self.assertIn("Enable Iterative Visual Critic", html)
                     self.assertIn("Metric Calibration Grid (Ortho Blueprints Only)", html)
 
-                # 2. POST /api/review/config
+                # 2. POST /api/review/config (target always locked to 10.0; high_poly_uncapped toggle works!)
                 req = urllib.request.Request(
                     f"http://127.0.0.1:{port}/api/review/config",
-                    data=json.dumps({"asset_dir": str(ad), "enabled": True, "target_score": 8.5, "max_iterations": 4}).encode("utf-8"),
+                    data=json.dumps({
+                        "asset_dir": str(ad),
+                        "enabled": True,
+                        "target_score": 8.5,
+                        "max_iterations": 4,
+                        "high_poly_uncapped": True,
+                    }).encode("utf-8"),
                     headers={"Content-Type": "application/json"},
                     method="POST",
                 )
@@ -241,7 +274,20 @@ class TestVelumForgeV12(unittest.TestCase):
                     body = json.loads(resp.read().decode("utf-8"))
                     self.assertTrue(body["ok"])
                     self.assertTrue(body["config"]["enabled"])
-                    self.assertEqual(body["config"]["target_score"], 8.5)
+                    self.assertEqual(body["config"]["target_score"], 10.0)
+                    self.assertIn("[HIGH-POLY UNCAPPED MODE: ON", body["handoff_prompt"])
+                    self.assertIn("--max-tris 0", body["handoff_prompt"])
+
+                # Turn high_poly_uncapped OFF again and verify default 300k guard returns
+                req_off = urllib.request.Request(
+                    f"http://127.0.0.1:{port}/api/review/config",
+                    data=json.dumps({"asset_dir": str(ad), "high_poly_uncapped": False}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(req_off) as resp:
+                    body_off = json.loads(resp.read().decode("utf-8"))
+                    self.assertNotIn("[HIGH-POLY UNCAPPED MODE: ON", body_off["handoff_prompt"])
 
                 # 3. POST /api/review/log
                 req2 = urllib.request.Request(
@@ -277,6 +323,14 @@ class TestVelumForgeV12(unittest.TestCase):
         self.assertIn("--factory-startup", cmd_safe)
         self.assertIn("-t", cmd_safe)
         self.assertIn("6", cmd_safe)
+        self.assertTrue(any(part.endswith("safe_bake_runner.py") for part in cmd_safe))
+        self.assertIn("--", cmd_safe)
+        self.assertTrue(cmd_safe[cmd_safe.index("--") + 1].endswith("bake.py"))
+
+        cmd_extra = bake_guard.build_safe_blender_bake_cmd(
+            "blender.exe", "bake.py", threads=4, extra_script_args=["--fast"]
+        )
+        self.assertEqual(cmd_extra[-1], "--fast")
 
         cmd_addons = bake_guard.build_safe_blender_bake_cmd("blender.exe", "bake.py", threads=8, user_addons=True)
         self.assertNotIn("--factory-startup", cmd_addons)
@@ -287,6 +341,15 @@ class TestVelumForgeV12(unittest.TestCase):
         self.assertEqual(env["VELUM_BAKE_COOLDOWN"], "1.5")
         self.assertEqual(env["VELUM_CYCLES_TILE_SIZE"], "256")
         self.assertEqual(env["OMP_NUM_THREADS"], "6")
+        self.assertEqual(env["TBB_NUM_THREADS"], "6")
+        self.assertEqual(env["OPENBLAS_NUM_THREADS"], "6")
+        self.assertEqual(env["MKL_NUM_THREADS"], "6")
+
+        cflags = bake_guard.windows_creationflags()
+        if sys.platform == "win32":
+            self.assertEqual(cflags, getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0x00004000))
+        else:
+            self.assertEqual(cflags, 0)
 
         # Verify stale PID lock recovery & clean acquire/release
         with tempfile.TemporaryDirectory() as td:
@@ -310,6 +373,125 @@ class TestVelumForgeV12(unittest.TestCase):
             az0 = spec["references"][0]["camera"]["azimuth_deg"]
             az1 = spec["references"][1]["camera"]["azimuth_deg"]
             self.assertNotEqual(az0, az1)
+
+
+class TestVelumForgeMergedFeatures(unittest.TestCase):
+    def test_building_and_arch_auto_profile_and_strict_ten(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            for kind in ("building", "arch"):
+                ad = Path(td) / f"cafe_{kind}"
+                created = generator.generate_parametric_scripts(
+                    ad,
+                    slug=f"cafe_{kind}",
+                    title=f"Cafe {kind.title()}",
+                    kind=kind,
+                    prompt="Art Deco corner bistro",
+                    length_m=14.0,
+                    references=[],
+                    rate_to_ten=True,
+                )
+                spec = json.loads(Path(created["spec"]).read_text(encoding="utf-8"))
+                self.assertEqual(spec["qa_profile"], "game")
+                self.assertEqual(spec["bake_res"], 2048)
+                self.assertTrue(spec["rate_to_ten"])
+                self.assertTrue(spec["review_loop"]["enabled"])
+                self.assertTrue(spec["review_loop"]["strict_ten"])
+                self.assertEqual(spec["review_loop"]["target_score"], 10.0)
+
+                build_src = Path(created["build_script"]).read_text(encoding="utf-8")
+                bake_src = Path(created["bake_script"]).read_text(encoding="utf-8")
+                self.assertIn("quadflow", build_src)
+                self.assertIn("refs.load_references", build_src)
+                self.assertIn("shared_non_color", bake_src)
+                self.assertIn("export.export_roblox", bake_src)
+
+                brief = generator.build_agent_handoff_prompt(ad)
+                self.assertIn("velum-architecture-environments", brief)
+                self.assertIn("10 out of 10", brief)
+                self.assertIn("split them into separate linked instances", brief)
+                self.assertNotIn("[HIGH-POLY UNCAPPED MODE: ON", brief)
+
+    def test_high_poly_uncapped_toggle_opt_in(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            # Default OFF
+            ad_def = Path(td) / "bistro_default"
+            created_def = generator.generate_parametric_scripts(
+                ad_def,
+                slug="bistro_default",
+                title="Bistro Default",
+                kind="building",
+                prompt="Corner bistro",
+                length_m=14.0,
+                references=[],
+            )
+            spec_def = json.loads(Path(created_def["spec"]).read_text(encoding="utf-8"))
+            self.assertFalse(spec_def["high_poly_uncapped"])
+            self.assertEqual(spec_def["qa_max_tris"], 300000)
+            brief_def = generator.build_agent_handoff_prompt(ad_def)
+            self.assertNotIn("[HIGH-POLY UNCAPPED MODE: ON", brief_def)
+            self.assertIn("--max-tris 300000", brief_def)
+
+            # Explicit prompt override high_poly=True activates uncapped block without changing spec
+            brief_ovr = generator.build_agent_handoff_prompt(ad_def, high_poly=True)
+            self.assertIn("[HIGH-POLY UNCAPPED MODE: ON", brief_ovr)
+            self.assertIn("--high-poly --max-tris 0", brief_ovr)
+            self.assertIn("24–36", brief_ovr)
+
+            # Opt-in ON persisted in asset_spec.json
+            ad_hp = Path(td) / "bistro_high_poly"
+            created_hp = generator.generate_parametric_scripts(
+                ad_hp,
+                slug="bistro_high_poly",
+                title="Bistro High Poly",
+                kind="prop",
+                prompt="Photorealistic hero patio",
+                length_m=2.0,
+                references=[],
+                high_poly_uncapped=True,
+                rate_to_ten=True,
+            )
+            spec_hp = json.loads(Path(created_hp["spec"]).read_text(encoding="utf-8"))
+            self.assertTrue(spec_hp["high_poly_uncapped"])
+            self.assertEqual(spec_hp["qa_max_tris"], 0)
+            self.assertEqual(spec_hp["qa_profile"], "game")
+            brief_hp = generator.build_agent_handoff_prompt(ad_hp)
+            self.assertIn("[HIGH-POLY UNCAPPED MODE: ON", brief_hp)
+            self.assertIn("--profile game --high-poly --max-tris 0", brief_hp)
+            self.assertIn("NEVER stop, approve, or proceed to Stage 5 baking below `10.0 / 10`", brief_hp)
+
+    def test_scaffold_building_and_arch(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            for kind in ("building", "arch"):
+                res = scaffold.scaffold_asset(kind, f"test_{kind}", td)
+                btxt = Path(res["build_script"]).read_text(encoding="utf-8")
+                ktxt = Path(res["bake_script"]).read_text(encoding="utf-8")
+                self.assertIn("quadflow", btxt)
+                self.assertIn("refs.load_references", btxt)
+                self.assertIn("prepare_dedicated_set_uvs", ktxt)
+
+    def test_doctor_expects_five_skills(self) -> None:
+        skills_root = REPO_ROOT / "plugins" / "velum-forge" / "skills"
+        found = sorted(p.name for p in skills_root.iterdir() if p.is_dir() and (p / "SKILL.md").is_file())
+        self.assertEqual(
+            found,
+            [
+                "velum-3d-workflow",
+                "velum-architecture-environments",
+                "velum-cad-brep",
+                "velum-organic-species",
+                "velum-pbr-bake-lods",
+            ],
+        )
+
+    def test_studio_discover_assets_and_new_examples(self) -> None:
+        discovered = {a["name"]: a for a in studio_server.discover_assets()}
+        for expected in ("mahi_mahi", "sunrunner_24", "news_cafe_south_beach", "cruiser_boat_7c", "memorial"):
+            self.assertIn(expected, discovered)
+        nc = discovered["news_cafe_south_beach"]
+        self.assertEqual(nc["kind"], "building")
+        self.assertEqual(nc["qa_profile"], "game")
+        self.assertEqual(nc["bake_res"], 2048)
+        self.assertEqual(len(nc["references"]), 5)
 
 
 if __name__ == "__main__":

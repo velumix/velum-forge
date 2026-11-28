@@ -1,4 +1,4 @@
-﻿"""Velum Forge â€” Offshore Trophy Mahi-Mahi / Dorado (`Coryphaena hippurus`, 1.20 m LOA).
+"""Velum Forge â€” Offshore Trophy Mahi-Mahi / Dorado (`Coryphaena hippurus`, 1.20 m LOA).
 
 Parametric anatomical & ichthyological 3D builder in Blender 5.2+ (`sclib`):
   - Exact pelagic Dorado proportions (1.20 m total length, 22.8% body depth, 2.17:1 compressed blade

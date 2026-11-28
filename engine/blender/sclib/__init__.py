@@ -1,4 +1,4 @@
-﻿"""Backward-compatible `sclib` alias forwarding cleanly to `vflib`."""
+"""Backward-compatible `sclib` alias forwarding cleanly to `vflib`."""
 import sys
 import vflib
 

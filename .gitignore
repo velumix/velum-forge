@@ -14,7 +14,7 @@ build/
 
 # Heavy Generated 3D Binaries inside examples (source .py generators + previews are tracked!)
 examples/*/*.blend
-examples/*/*.blend1
+examples/*/*.blend[0-9]
 examples/*/*.glb
 examples/*/*.fbx
 examples/*/cad/
@@ -22,7 +22,10 @@ examples/*/export/
 examples/*/lods/
 examples/*/rigged/
 examples/*/renders/
+examples/*/reviews/
+examples/*/roblox/
 examples/*/textures/
+examples/*/textures_src/
 examples/*/variants/
 
 # OS / IDE

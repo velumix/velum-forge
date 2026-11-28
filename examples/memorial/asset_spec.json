@@ -1,0 +1,38 @@
+{
+  "schema": "velum-forge/asset-spec/v1",
+  "slug": "memorial",
+  "title": "memorial",
+  "kind": "boat",
+  "prompt": "memorial",
+  "target_length_m": 18.0,
+  "qa_profile": "roblox",
+  "variants_count": 4,
+  "extracted_palette": [
+    "#354828",
+    "#182212",
+    "#23341E",
+    "#714E3B",
+    "#866656"
+  ],
+  "references": [
+    {
+      "filename": "ref_side_NSkuanBlZw.jpg",
+      "path": "references/ref_side_NSkuanBlZw.jpg",
+      "view": "side",
+      "width_px": 600,
+      "height_px": 400,
+      "subject_aspect_w_over_h": 1.5,
+      "dominant_palette": [
+        "#354828",
+        "#182212",
+        "#23341E",
+        "#714E3B",
+        "#866656"
+      ]
+    }
+  ],
+  "workflow_commands": {
+    "qa": "vforge qa \"examples/memorial/build_memorial.py\" --profile roblox --forward-axis +Y",
+    "bake": "vforge bake \"examples/memorial/bake_lod_variants.py\""
+  }
+}

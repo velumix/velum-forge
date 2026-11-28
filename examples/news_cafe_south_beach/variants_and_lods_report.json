@@ -1,0 +1,678 @@
+{
+  "backend": "OPTIX",
+  "variants": {
+    "classic_ocean_dr": {
+      "label": "1. Classic Ocean Dr (1:1 Street View)",
+      "glb": "variants/news_cafe_classic_ocean_dr.glb",
+      "render": "renders/variant_classic_ocean_dr.png",
+      "textures": {
+        "signage": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Color.png"
+        },
+        "hero": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Color.png"
+        },
+        "street": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Color.png"
+        },
+        "nature": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Color.png"
+        },
+        "patio_umbrellas": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Color.png"
+        },
+        "chair_honey": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Color.png"
+        },
+        "chair_cream": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Color.png"
+        },
+        "patio_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Color.png"
+        },
+        "patio_tableware": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Color.png"
+        },
+        "host_podium": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Color.png"
+        },
+        "menu_stand": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Color.png"
+        },
+        "int_arch": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Color.png"
+        },
+        "int_bar": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Color.png"
+        },
+        "int_bar_props": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Color.png"
+        },
+        "int_gallery_art": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Color.png"
+        },
+        "int_banquette": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Color.png"
+        },
+        "int_barstool": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Color.png"
+        },
+        "int_dining_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Color.png"
+        },
+        "int_lighting": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Color.png"
+        }
+      }
+    },
+    "art_deco_mint_1988": {
+      "label": "2. Historic 1988 Art Deco Mint",
+      "glb": "variants/news_cafe_art_deco_mint_1988.glb",
+      "render": "renders/variant_art_deco_mint_1988.png",
+      "textures": {
+        "signage": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_art_deco_mint_1988_signage_Color.png"
+        },
+        "hero": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_art_deco_mint_1988_hero_Color.png"
+        },
+        "street": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Color.png"
+        },
+        "nature": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Color.png"
+        },
+        "patio_umbrellas": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_art_deco_mint_1988_patio_umbrellas_Color.png"
+        },
+        "chair_honey": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Color.png"
+        },
+        "chair_cream": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Color.png"
+        },
+        "patio_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Color.png"
+        },
+        "patio_tableware": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Color.png"
+        },
+        "host_podium": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Color.png"
+        },
+        "menu_stand": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Color.png"
+        },
+        "int_arch": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Color.png"
+        },
+        "int_bar": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Color.png"
+        },
+        "int_bar_props": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Color.png"
+        },
+        "int_gallery_art": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Color.png"
+        },
+        "int_banquette": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Color.png"
+        },
+        "int_barstool": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Color.png"
+        },
+        "int_dining_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Color.png"
+        },
+        "int_lighting": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Color.png"
+        }
+      }
+    },
+    "sunset_coral_deco": {
+      "label": "3. Flamingo Coral Deco Edition",
+      "glb": "variants/news_cafe_sunset_coral_deco.glb",
+      "render": "renders/variant_sunset_coral_deco.png",
+      "textures": {
+        "signage": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_sunset_coral_deco_signage_Color.png"
+        },
+        "hero": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_sunset_coral_deco_hero_Color.png"
+        },
+        "street": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Color.png"
+        },
+        "nature": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Color.png"
+        },
+        "patio_umbrellas": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_sunset_coral_deco_patio_umbrellas_Color.png"
+        },
+        "chair_honey": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Color.png"
+        },
+        "chair_cream": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Color.png"
+        },
+        "patio_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Color.png"
+        },
+        "patio_tableware": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Color.png"
+        },
+        "host_podium": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Color.png"
+        },
+        "menu_stand": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Color.png"
+        },
+        "int_arch": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Color.png"
+        },
+        "int_bar": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Color.png"
+        },
+        "int_bar_props": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Color.png"
+        },
+        "int_gallery_art": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Color.png"
+        },
+        "int_banquette": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Color.png"
+        },
+        "int_barstool": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Color.png"
+        },
+        "int_dining_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Color.png"
+        },
+        "int_lighting": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Color.png"
+        }
+      }
+    },
+    "south_beach_twilight": {
+      "label": "4. South Beach Neon Twilight",
+      "glb": "variants/news_cafe_south_beach_twilight.glb",
+      "render": "renders/variant_south_beach_twilight.png",
+      "textures": {
+        "signage": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_signage_Color.png"
+        },
+        "hero": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_hero_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_south_beach_twilight_hero_Color.png"
+        },
+        "street": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_street_Color.png"
+        },
+        "nature": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_nature_Color.png"
+        },
+        "patio_umbrellas": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_umbrellas_Color.png"
+        },
+        "chair_honey": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_honey_Color.png"
+        },
+        "chair_cream": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_chair_cream_Color.png"
+        },
+        "patio_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_table_Color.png"
+        },
+        "patio_tableware": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_patio_tableware_Color.png"
+        },
+        "host_podium": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_host_podium_Color.png"
+        },
+        "menu_stand": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_menu_stand_Color.png"
+        },
+        "int_arch": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_arch_Color.png"
+        },
+        "int_bar": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_Color.png"
+        },
+        "int_bar_props": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_bar_props_Color.png"
+        },
+        "int_gallery_art": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_gallery_art_Color.png"
+        },
+        "int_banquette": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_banquette_Color.png"
+        },
+        "int_barstool": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_barstool_Color.png"
+        },
+        "int_dining_table": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_dining_table_Color.png"
+        },
+        "int_lighting": {
+          "Normal": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Normal.png",
+          "Roughness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Roughness.png",
+          "Metalness": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Metalness.png",
+          "AO": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_AO.png",
+          "ORM": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_ORM.png",
+          "Color": "D:\\blender\\projects\\velum-forge-main\\examples\\news_cafe_south_beach\\textures\\T_NewsCafe_classic_ocean_dr_int_lighting_Color.png"
+        }
+      }
+    }
+  },
+  "lods": {
+    "LOD0": {
+      "tris": 1553828,
+      "parts": 156,
+      "screen_size": 1.0,
+      "glb": "lods/news_cafe_south_beach_LOD0.glb"
+    },
+    "LOD1": {
+      "tris": 783084,
+      "parts": 156,
+      "unique_meshes": 46,
+      "screen_size": 0.5,
+      "glb": "lods/news_cafe_south_beach_LOD1.glb"
+    },
+    "LOD2": {
+      "tris": 426496,
+      "parts": 156,
+      "unique_meshes": 46,
+      "screen_size": 0.25,
+      "glb": "lods/news_cafe_south_beach_LOD2.glb"
+    },
+    "LOD3": {
+      "tris": 223829,
+      "parts": 156,
+      "unique_meshes": 46,
+      "screen_size": 0.1,
+      "glb": "lods/news_cafe_south_beach_LOD3.glb"
+    }
+  },
+  "roblox": {
+    "fbx": "roblox/NewsCafeSouthBeach.fbx",
+    "manifest": "roblox/NewsCafeSouthBeach.manifest.json",
+    "setup_luau": "roblox/NewsCafeSouthBeach.studio_setup.luau",
+    "total_tris": 1553828,
+    "parts": 36,
+    "sockets": 5
+  }
+}

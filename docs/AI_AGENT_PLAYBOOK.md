@@ -15,7 +15,8 @@ This playbook teaches any AI coding/3D agent (**Google Antigravity**, **Claude C
 | **Stair-stepped painted stripes on shared UV atlases** | `uv.smart_project` merges coplanar faces across material boundaries, causing diagonal pixel aliasing | Split multi-material edges BEFORE `smart_project` + `pack_islands`, bake with `12–14 px` `EXTEND` margin, and re-weld 3D vertices (`remove_doubles`) afterward (`vflib.bake.split_material_border_uv_islands`). |
 | **Torn stripes or inner-liner poke-through on LODs** | Unconstrained `COLLAPSE` decimation collapses across UV seams and flattens curved outer shells into inner liners | Mark UV seams (`seams_from_islands`), set `dec.delimit = {'UV', 'SEAM', 'SHARP'}`, use `DISSOLVE` (`1.8°–3.4°`) on double-walled shells, and push thin exterior decal bands outboard by `+3..+13 mm` (`vflib.lod`). |
 | **Perspective photos broken by ortho blueprint grids** | Parking real Street View / 3/4 perspective photos onto flat ortho planes causes foreshortening & lens mismatch | Separate **`perspective`** references (matched `VF_RefCam_*` Blender perspective cameras with real `lens_mm` + camera background overlay) from **`ortho_blueprint`** references (1:1m ortho planes + opt-in `--ortho-grid`). |
-| **Premature "looks great" / grade-inflated single-pass slop** | Stopping after Iteration 1 despite blob botanicals, buried glazing, clipping umbrellas, or floating parts | Optional **Iterative Visual Critic & Honest Rating Loop (`vforge review`)**: archive snapshots, rate honestly (`0–10`, hard-capped on `qa_report.json` errors/warnings), log categorized defects, and iterate until `>= target_score`! |
+| **Blurry 2K textures on buildings / crowded interiors** | Cramping 100+ meshes onto one atlas or leaking floor shadows across 45 linked chairs | Partition into dedicated `vf_asset_set` `2048x2048` 2K sets (`isolate_for_ao=True`, `shared_non_color` cache), preserve Dual-UV `GraphicUV`, and use `> 20k` Split-Into-Instances-First (`vflib.quadflow`) before any decimation. |
+| **Premature "looks great" / grade-inflated single-pass slop** | Stopping after Iteration 1 despite blob botanicals, buried glazing, clipping umbrellas, or floating parts | Optional **Iterative Visual Critic & Honest Rating Loop (`vforge review`)**: archive snapshots, rate honestly (`0–10`, hard-capped on `qa_report.json` errors/warnings, with `--rate-to-10` strict mode), log categorized defects, and iterate until `>= target_score`! |
 
 ---
 
@@ -29,25 +30,26 @@ Never invent proportions. Look up exact real-world measurements in **meters**:
 ### Step B: Build Mechanical Sub-Parts in `build123d` (`engine/cad/`)
 Run CAD hardware generation via `.venv` Python (`engine/cad/cad_bridge.py`) to produce exact `.step` + watertight `1:1 m` `.glb` parts before assembling the scene in Blender.
 
-### Step C: Build Watertight `S^2` Primary Meshes & Sockets in Blender (`engine/blender/vflib/`)
-- Keep every individual `MeshPart` strictly `< 20,000` triangles (`ROBLOX_MAX_TRIS_PER_MESH`).
-- Keep closed hydrofoil / panel thickness `>= 1.6 mm` (`half_thickness >= 0.80 mm`) so `qa_check.py` (`--eps 0.001`) reports `0` hidden back-to-back face warnings.
-- Ground lowest vertex to `Z = 0.0000 m`.
+### Step C: Build Watertight `S^2` Primary Meshes, Quad-Flow Furniture & Sockets in Blender (`engine/blender/vflib/`)
+- Keep every individual Roblox `MeshPart` strictly `< 20,000` triangles (`ROBLOX_MAX_TRIS_PER_MESH`); use `--profile game --max-tris 300000` for standard architecture, OR opt-in **`--profile game --high-poly --max-tris 0`** when High-Poly Uncapped Mode is toggled/requested (unlimited BVH + News Cafe ArchViz segment floors: `24–36` hero furniture/rings, `16–24` tableware, `12–16` + `substeps=3` tubes, `bevel`, `style="quatrefoil"`, dense 3D foliage).
+- **Split-Into-Instances First (`> 20k` Tris):** If an object exceeds `20,000` tris because it joins repeated or separable items (e.g., 2+ barstools or chairs merged together), split them into separate linked instances (`vflib.quadflow.spawn_instance`) before ever reducing polygon detail.
+- Use `FIXED`-diagonal quad-flow `bmesh` primitives (`vflib.quadflow`, passing `>= 80%` `Alt+J`) on hero furniture/tableware and `ground_objects_safe` for multi-datum grounding (`Z_ROAD`, `Z_SW`, `Z_FLOOR_INT`).
+- Keep closed hydrofoil / panel / curved leaf thickness `>= 1.6 mm` (`half_thickness >= 0.80 mm`) so `qa_check.py` (`--eps 0.001`) reports `0` hidden back-to-back face warnings.
 
 ### Step D: Pass the 10-View Visual & Geometric QA Gate (`0` Errors, `0` Warnings)
-Run `vforge qa <build_script.py> --profile roblox --forward-axis +Y` (add `--ortho-grid` ONLY for orthographic blueprints; add `--snapshot-iteration` when Iterative Review mode is enabled).
+Run `vforge qa <build_script.py> --profile roblox --forward-axis +Y` (or `--profile game --max-tris 300000`, or `--profile game --high-poly --max-tris 0` when High-Poly Uncapped Mode is toggled ON; add `--ortho-grid` ONLY for orthographic blueprints; add `--snapshot-iteration` when Iterative Review mode is enabled).
 **Never trust exit code `0` alone** — open and inspect `contact_sheet_material.png`, `contact_sheet_diagnostic.png`, and multi-angle `ref_comparison.png` with a vision tool (`read_file`) to verify proportions, silhouette, framing, and zero clipping from all angles!
 
-### Step D2 (Optional): Iterative Visual Critic & Honest Rating Loop (`vforge review`)
-When `review_loop.enabled` is turned ON in `asset_spec.json` (via `--iterate`, `vforge review config <dir> --enable`, or Studio UI):
+### Step D2 (Optional): Iterative Visual Critic & Strict Always-10/10 Loop (`vforge review`)
+When `review_loop.enabled` is turned ON in `asset_spec.json` (via `--iterate`, `--rate-to-10`, `vforge review config <dir> --enable`, or Studio UI):
 1. Compare all matched perspective / QA renders directly against every reference photo + `qa_report.json`.
-2. Write an honest **Iteration N Review — Honest Rating: X.X / 10** calling out specific defects by category (never inflating a `6.2/10` pass!).
-3. Log it via `vforge review log <dir> --score <X.X> --summary "..." --strength "..." --defect "Category|severity|Description|Fix"` — Velum Forge automatically archives iteration snapshots, enforces objective QA caps, updates `reviews/REVIEW_LOG.md`, and renders `reviews/iteration_progression.png`.
-4. Fix every critical/major defect and repeat until `honest_rating >= target_score` (default `9.0/10`) with `0` QA errors/warnings (or `max_iterations` reached).
+2. Write an honest **Iteration N Review — Honest Rating: X.X / 10** calling out specific defects by category (never inflating a `6.2/10` pass — do not rush or fake scores! When High-Poly Uncapped Mode is ON, faceted `<= 10`-seg hero props or sparse palms block `10/10`).
+3. Log it via `vforge review log <dir> --score <X.X> --summary "..." --strength "..." --defect "Category|severity|Description|Fix"` — Velum Forge automatically archives iteration snapshots, enforces objective QA/defect caps, updates `reviews/REVIEW_LOG.md`, and renders `reviews/iteration_progression.png`.
+4. Fix every defect and **NEVER stop, approve, or proceed to Stage 5 below `10.0 / 10`** — iterate until **`honest_rating == 10.0 / 10`**, `0` unresolved defects, and `0` QA errors/warnings.
 
-### Step E: Bake `2048x2048` Cycles GPU PBR Atlases, Build 4 Variants & Generate `LOD0`–`LOD3`
-Run `vforge bake <bake_lod_variants.py>`, then visually inspect:
+### Step E: Bake Dedicated `2048x2048` Per-Set Cycles GPU PBR Atlases, Build 4 Variants & Generate Instance-Aware `LOD0`–`LOD3`
+Run `vforge bake <bake_lod_variants.py>` (automatically routed through `safe_bake_runner.py` GPU-only guard + `isolate_for_ao=True` + `shared_non_color` cache + Dual-UV `GraphicUV`), then visually inspect:
 1. `variants_lineup.png`
 2. `baked_closeup.png`
-3. `lod_comparison_sheet.png`
-4. `T_<Asset>_<variant>_Color.png` & `T_<Asset>_<variant>_Normal.png`
+3. `lod_comparison_sheet.png` (and ensure `0` `_src` Outliner suffixes remain!)
+4. `T_<Asset>_<variant>_<set>_Color.png` & `T_<Asset>_<variant>_<set>_Normal.png`

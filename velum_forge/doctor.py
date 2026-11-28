@@ -584,8 +584,20 @@ def run_doctor() -> dict[str, Any]:
     home = Path.home()
     agy_plugin_dir = home / ".gemini" / "config" / "plugins" / "velum-forge"
     claude_skills_dir = home / ".claude" / "skills"
-    claude_installed = (claude_skills_dir / "velum-3d-workflow" / "SKILL.md").is_file()
-    agy_installed = (agy_plugin_dir / "plugin.json").is_file()
+    src_skills_dir = PLUGIN_SRC_DIR / "skills"
+    expected_skills = sorted(p.name for p in src_skills_dir.iterdir() if p.is_dir() and (p / "SKILL.md").is_file()) if src_skills_dir.is_dir() else [
+        "velum-3d-workflow",
+        "velum-architecture-environments",
+        "velum-cad-brep",
+        "velum-organic-species",
+        "velum-pbr-bake-lods",
+    ]
+    agy_missing = [s for s in expected_skills if not (agy_plugin_dir / "skills" / s / "SKILL.md").is_file()]
+    if not (agy_plugin_dir / "rules" / "AGENTS.md").is_file():
+        agy_missing.append("rules/AGENTS.md")
+    claude_missing = [s for s in expected_skills if not (claude_skills_dir / s / "SKILL.md").is_file()]
+    claude_installed = len(claude_missing) == 0 and len(expected_skills) > 0
+    agy_installed = (agy_plugin_dir / "plugin.json").is_file() and len(agy_missing) == 0
     dmo = get_design_output_dir()
 
     checks = [
@@ -615,13 +627,21 @@ def run_doctor() -> dict[str, Any]:
             "id": "antigravity",
             "label": "Antigravity Plugin (velum-forge)",
             "ok": agy_installed,
-            "detail": str(agy_plugin_dir) if agy_installed else "Not installed yet (click 'Sync AI Skills')",
+            "detail": (
+                f"{len(expected_skills)}/{len(expected_skills)} skills synced ({agy_plugin_dir})"
+                if agy_installed
+                else (f"Missing in {agy_plugin_dir}: {', '.join(agy_missing)} — run 'vforge install-ai'" if (agy_plugin_dir / "plugin.json").is_file() else "Not installed yet (click 'Sync AI Skills')")
+            ),
         },
         {
             "id": "claude",
             "label": "Claude Code CLI Skills (~/.claude/skills)",
             "ok": claude_installed,
-            "detail": str(claude_skills_dir) if claude_installed else "Not installed yet (click 'Sync AI Skills')",
+            "detail": (
+                f"{len(expected_skills)}/{len(expected_skills)} skills synced ({claude_skills_dir})"
+                if claude_installed
+                else (f"Missing in {claude_skills_dir}: {', '.join(claude_missing)} — run 'vforge install-ai'" if claude_skills_dir.is_dir() else "Not installed yet (click 'Sync AI Skills')")
+            ),
         },
         {
             "id": "output_dir",

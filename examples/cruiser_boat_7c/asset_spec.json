@@ -1,0 +1,249 @@
+{
+  "schema": "velum-forge/asset-spec/v1",
+  "slug": "cruiser_boat_7c",
+  "title": "Cruiser Boat 7C",
+  "kind": "boat",
+  "prompt": "Cruiser Boat 7C",
+  "target_length_m": 18.3,
+  "qa_profile": "roblox",
+  "variants_count": 4,
+  "extracted_palette": [
+    "#241F1C",
+    "#BECED9",
+    "#7F96A8",
+    "#3D494F",
+    "#A4B6C5",
+    "#759ABC"
+  ],
+  "references": [
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 3024,
+      "subject_aspect_w_over_h": 1.333,
+      "dominant_palette": [
+        "#241F1C",
+        "#BECED9",
+        "#7F96A8",
+        "#3D494F",
+        "#A4B6C5"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 3024,
+      "subject_aspect_w_over_h": 1.333,
+      "dominant_palette": [
+        "#759ABC",
+        "#121719",
+        "#9DB9CD",
+        "#94A6B3",
+        "#596E80"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 2268,
+      "subject_aspect_w_over_h": 1.778,
+      "dominant_palette": [
+        "#15181B",
+        "#2D3136",
+        "#A1A9B2",
+        "#585C62",
+        "#8A8F98"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 2268,
+      "subject_aspect_w_over_h": 1.778,
+      "dominant_palette": [
+        "#36383B",
+        "#4B4D51",
+        "#1B1C1E",
+        "#6F7073",
+        "#88898C"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 3024,
+      "subject_aspect_w_over_h": 1.333,
+      "dominant_palette": [
+        "#91B6D9",
+        "#707D87",
+        "#ADC9DD",
+        "#4D5861",
+        "#333C41"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 5712,
+      "height_px": 4284,
+      "subject_aspect_w_over_h": 1.333,
+      "dominant_palette": [
+        "#010204",
+        "#03080B",
+        "#87AAC9",
+        "#607B92",
+        "#31393B"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 2268,
+      "subject_aspect_w_over_h": 1.778,
+      "dominant_palette": [
+        "#3A3B3D",
+        "#9A9DA0",
+        "#4E5052",
+        "#606265",
+        "#171818"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 3024,
+      "subject_aspect_w_over_h": 1.333,
+      "dominant_palette": [
+        "#314965",
+        "#111E2C",
+        "#688CAD",
+        "#426A99",
+        "#899CAB"
+      ]
+    },
+    {
+      "filename": "ref_top_image.png",
+      "path": "references/ref_top_image.png",
+      "view": "top",
+      "width_px": 3395,
+      "height_px": 1960,
+      "subject_aspect_w_over_h": 1.732,
+      "dominant_palette": [
+        "#CFCEC9",
+        "#616161",
+        "#87887D",
+        "#B5B4AB",
+        "#E5E5E5"
+      ]
+    },
+    {
+      "filename": "ref_side_image.png",
+      "path": "references/ref_side_image.png",
+      "view": "side",
+      "width_px": 4032,
+      "height_px": 2268,
+      "subject_aspect_w_over_h": 1.778,
+      "dominant_palette": [
+        "#93B1CB",
+        "#A3C0D5",
+        "#8BA9C6",
+        "#272D32",
+        "#5B6575"
+      ]
+    },
+    {
+      "filename": "ref_front_image.png",
+      "path": "references/ref_front_image.png",
+      "view": "front",
+      "width_px": 4032,
+      "height_px": 2268,
+      "subject_aspect_w_over_h": 1.778,
+      "dominant_palette": [
+        "#8EADCA",
+        "#A1BFD5",
+        "#586273",
+        "#292F35",
+        "#ACC8DD"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 2268,
+      "subject_aspect_w_over_h": 1.778,
+      "dominant_palette": [
+        "#93ACC6",
+        "#242B33",
+        "#353F4B",
+        "#687487",
+        "#505C6D"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 640,
+      "height_px": 427,
+      "subject_aspect_w_over_h": 1.499,
+      "dominant_palette": [
+        "#839FBB",
+        "#6A7380",
+        "#96AEC5",
+        "#A0B8CC",
+        "#474E59"
+      ]
+    },
+    {
+      "filename": "ref_side_image.png",
+      "path": "references/ref_side_image.png",
+      "view": "side",
+      "width_px": 1130,
+      "height_px": 753,
+      "subject_aspect_w_over_h": 1.501,
+      "dominant_palette": [
+        "#5C97E1",
+        "#475E71",
+        "#283A4D",
+        "#7CB6F2",
+        "#55728E"
+      ]
+    },
+    {
+      "filename": "ref_hero_image.png",
+      "path": "references/ref_hero_image.png",
+      "view": "hero",
+      "width_px": 4032,
+      "height_px": 3024,
+      "subject_aspect_w_over_h": 1.333,
+      "dominant_palette": [
+        "#2A200C",
+        "#0E0C05",
+        "#2F2B1D",
+        "#1D1C11",
+        "#7E908B"
+      ]
+    }
+  ],
+  "workflow_commands": {
+    "qa": "vforge qa \"examples/cruiser_boat_7c/build_cruiser_boat_7c.py\" --profile roblox --forward-axis +Y",
+    "bake": "vforge bake \"examples/cruiser_boat_7c/bake_lod_variants.py\""
+  }
+}

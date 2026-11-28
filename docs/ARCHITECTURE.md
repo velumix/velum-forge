@@ -24,8 +24,8 @@ flowchart LR
 
 ## 3. Repository Layout
 
-- **`velum_forge/`** — Python CLI (`vforge`), Environment Doctor (`doctor.py`), Asset Scaffolder (`scaffold.py`), Tkinter Setup Wizard (`installer_gui.py`), and Desktop Studio App (`studio_server.py` + `ui/index.html`).
-- **`engine/blender/`** — `vflib` (`core`, `geo`, `mats`, `gameready`, `integrity`, `bake`, `lod`, `export`, `render`), `sclib` compatibility shim, and standalone 10-view `qa_pipeline.py` + `qa_check.py`.
+- **`velum_forge/`** — Python CLI (`vforge`), Environment Doctor (`doctor.py`), Asset Scaffolder (`scaffold.py`), Hardware-Safe Bake Guard (`bake_guard.py`), Optional Review Loop (`review.py`), Tkinter Setup Wizard (`installer_gui.py`), and Desktop Studio App (`studio_server.py` + `ui/index.html`).
+- **`engine/blender/`** — `vflib` (`core`, `geo`, `quadflow`, `mats`, `gameready`, `integrity`, `bake`, `lod`, `export`, `refs`, `render`), `sclib` compatibility shim, `safe_bake_runner.py`, and standalone 10-view `qa_pipeline.py` + `qa_check.py`.
 - **`engine/cad/`** — `cad_bridge.py` (`build123d` <-> `trimesh` / `pymeshlab`), `compose_sheet.py`, and `run_qa.ps1`.
-- **`plugins/velum-forge/`** — Official Google Antigravity plugin (`plugin.json`, `rules/AGENTS.md`, and 4 `SKILL.md` modules), mirrored to Claude Code (`~/.claude/skills`) and Cursor (`.cursor/rules`) by `vforge install-ai`.
-- **`examples/`** — Production reference generators (`sunrunner_24` offshore center-console boat & `mahi_mahi` pelagic trophy gamefish).
+- **`plugins/velum-forge/`** — Official Google Antigravity plugin (`plugin.json`, `rules/AGENTS.md`, and 5 `SKILL.md` modules including `velum-architecture-environments`), mirrored to Claude Code (`~/.claude/skills`) and Cursor (`.cursor/rules`) by `vforge install-ai`.
+- **`examples/`** — Production reference generators (`news_cafe_south_beach` landmark restaurant & Ocean Dr streetscape, `sunrunner_24` offshore center-console boat, `cruiser_boat_7c`, `memorial`, and `mahi_mahi` pelagic trophy gamefish).

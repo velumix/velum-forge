@@ -1,4 +1,4 @@
-﻿"""Compose labeled material, diagnostic, and multi-reference comparison contact sheets from QA renders.
+"""Compose labeled material, diagnostic, and multi-reference comparison contact sheets from QA renders.
 
 Supports:
 - Multi-reference side-by-side comparison (`ref_pairs` from `render_manifest.json`, matching EVERY
